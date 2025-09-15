@@ -1,171 +1,177 @@
-# Note0 - Academic Material Sharing Platform
+# Note0 - Note Sharing Application (Java Spring Boot)
 
-A comprehensive Java Spring Boot application for sharing academic materials, notes, and resources among students.
+`Note0` is a comprehensive note-sharing application designed for students to upload, share, and rate academic materials. This project is a complete conversion from an original Node.js backend to a modern, robust, and secure Java Spring Boot application.
 
-## 🚀 Quick Start
+**Current Status: In Development (Core User Authentication Implemented)**
 
-The application has been completely converted from Node.js to Java Spring Boot. All old files have been removed and the new application is ready to use.
+This README documents the project's structure, setup, and current capabilities, which include a fully functional and secure user registration endpoint connected to a cloud PostgreSQL database.
+
+## Table of Contents
+1.  [Technology Stack](#technology-stack)
+2.  [Features Implemented](#features-implemented)
+3.  [Project Structure](#project-structure)
+4.  [Getting Started](#getting-started)
+    *   [Prerequisites](#prerequisites)
+    *   [Database Setup (Aiven)](#database-setup-aiven)
+    *   [Configuration](#configuration)
+    *   [Running the Application](#running-the-application)
+5.  [API Endpoints](#api-endpoints)
+    *   [Authentication](#authentication)
+6.  [How to Test with Postman](#how-to-test-with-postman)
+7.  [Next Steps](#next-steps)
+
+## Technology Stack
+
+This project is built with a modern and powerful Java technology stack, chosen for its robustness, security, and maintainability.
+
+| Component      | Technology                                                              | Purpose                                     |
+|----------------|-------------------------------------------------------------------------|---------------------------------------------|
+| **Runtime**    | Java 17                                                                 | Core programming language                   |
+| **Framework**  | Spring Boot 3.3+                                                        | Application framework for rapid development |
+| **Security**   | Spring Security 6+                                                      | Authentication and Access Control           |
+| **Database**   | Spring Data JPA / Hibernate                                             | Object-Relational Mapping (ORM)             |
+| **Database**   | PostgreSQL (Hosted on [Aiven](https://aiven.io/))                       | Relational database for data persistence      |
+| **Web**        | Spring Web (MVC)                                                        | Building RESTful APIs                       |
+| **Validation** | Jakarta Bean Validation                                                 | Data validation for API inputs              |
+| **Build Tool** | Maven                                                                   | Dependency Management and Build Automation  |
+
+## Features Implemented
+
+As of the current version, the core foundation for user management is complete:
+
+✅ **Secure User Registration:**
+-   An API endpoint (`POST /api/auth/register`) for new user creation.
+-   **Password Encryption:** User passwords are securely hashed using `BCryptPasswordEncoder` before being stored.
+-   **Input Validation:** Incoming registration data (full name, email, password) is validated to ensure correctness (e.g., valid email format, non-blank fields).
+-   **Duplicate Email Check:** The system prevents registration with an email that is already in use.
+
+✅ **Cloud Database Integration:**
+-   The application is fully connected to a PostgreSQL database hosted on Aiven.
+-   JPA entities are successfully mapped to the database schema.
+-   Automatic schema management (`ddl-auto=update`) is enabled for development.
+
+✅ **Robust Security Foundation:**
+-   Spring Security is configured to protect the application.
+-   Cross-Site Request Forgery (CSRF) protection is disabled, which is standard practice for stateless REST APIs.
+-   Specific endpoints (`/api/auth/**`) are whitelisted to allow public access for registration and login.
+
+## Project Structure
+
+The project follows the standard Maven and Spring Boot conventions, with a clear separation of concerns.
+
+```
+src/main/
+├── java/com/note0/
+│   ├── controller/          # REST API endpoints (e.g., AuthController)
+│   ├── dto/                 # Data Transfer Objects (e.g., RegisterDto)
+│   ├── entity/              # JPA database entities (e.g., User)
+│   ├── repository/          # Spring Data JPA repositories (e.g., UserRepository)
+│   ├── security/            # Spring Security configuration (e.g., SecurityConfig)
+│   ├── service/             # Business logic layer (e.g., AuthService)
+│   └── Note0Application.java  # Main application entry point
+│
+└── resources/
+    ├── application.properties # Application configuration (database, etc.)
+    └── static/                # For future CSS, JS files
+    └── templates/             # For future Thymeleaf HTML files
+```
+
+## Getting Started
+
+Follow these steps to get a local instance of the application running.
 
 ### Prerequisites
-- Java 17+ (Download from: https://adoptium.net)
-- Maven 3.6+ (Download from: https://maven.apache.org/download.cgi)
-- MySQL 8.0+ (Download from: https://dev.mysql.com/downloads/installer/)
 
-### Windows Setup Guide
+-   **Java Development Kit (JDK)**: Version 17 or newer.
+-   **Apache Maven**: Version 3.6+ for building the project.
+-   **Postman**: (Recommended) for testing the API endpoints.
+-   An **Aiven Account**: A free account to host the PostgreSQL database.
 
-1. **Install Prerequisites**:
-   - Install Java: Run the installer and follow the prompts
-   - Install Maven: 
-     - Extract the downloaded archive to `C:\Program Files\Maven`
-     - Add `C:\Program Files\Maven\bin` to your System PATH
-   - Install PostgreSQL:
-     - Run the installer and note down your password
-     - Keep the default port (5432)
-     - Launch pgAdmin 4 to verify installation
+### Database Setup (Aiven)
 
-2. **Running the Application**:
+1.  Log in to your [Aiven](https://aiven.io/) account.
+2.  Create a new **PostgreSQL** service on the **Free** plan.
+3.  Once the service is running, navigate to its "Overview" page.
+4.  Under the "Connection information" section, find and copy the **Host**, **Port**, **User**, **Password**, and **Database Name**. You will need these for the next step.
 
-   **For Windows:**
-   ```powershell
-   # Open PowerShell as Administrator
-   cd note0
-   
-   # Run the Windows script
-   .\run-app.ps1
-   ```
+### Configuration
 
-   If you get a security error, run:
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-   .\run-app.ps1
-   ```
+1.  Navigate to `src/main/resources/`.
+2.  Open the `application.properties` file.
+3.  Copy the following configuration and **replace the placeholders** with your actual Aiven database credentials.
 
-   **For Linux/macOS:**
-   ```bash
-   # Make the script executable
-   chmod +x run-app.sh
-   
-   # Run the script
-   ./run-app.sh
-   ```
+```properties
+# Aiven PostgreSQL Database Configuration
+spring.datasource.url=jdbc:postgresql://<YOUR_AIVEN_HOST>:<YOUR_AIVEN_PORT>/<YOUR_DATABASE_NAME>?sslmode=require
+spring.datasource.username=<YOUR_AIVEN_USER>
+spring.datasource.password=<YOUR_AIVEN_PASSWORD>
 
-### Installation & Setup
-
-1. **Navigate to the application directory:**
-   ```bash
-   cd note0-application
-   ```
-
-2. **Set up the database:**
-   ```bash
-   # Create PostgreSQL database
-   sudo -u postgres psql
-   CREATE DATABASE notes_app;
-   \q
-   
-   # Run the schema
-   psql -U postgres -d notes_app -f database/schema.sql
-   ```
-
-3. **Run the application:**
-
-   **For Windows (PowerShell):**
-   ```powershell
-   .\run.ps1
-   ```
-
-   **For Linux/macOS:**
-   ```bash
-   chmod +x run.sh  # Make script executable (first time only)
-   ./run.sh
-   ```
-
-   **Manual method (any platform):**
-   ```bash
-   # Build the application
-   mvn clean install
-   
-   # Run the application
-   mvn spring-boot:run
-   ```
-
-4. **Access the application:**
-   - Web Interface: http://localhost:8080
-   - API Base: http://localhost:8080/api
-   
-   The application typically takes a few seconds to start. Wait for the message "Started Note0Application" in the console.
-
-## 📁 Project Structure
-
-```
-note0/
-├── note0-application/          # Main Java Spring Boot application
-│   ├── src/main/java/com/note0/
-│   │   ├── controller/         # REST & Web controllers
-│   │   ├── dto/               # Data Transfer Objects
-│   │   ├── entity/            # JPA entities
-│   │   ├── repository/        # Data repositories
-│   │   ├── security/          # Security configuration
-│   │   ├── service/           # Business logic
-│   │   └── Note0Application.java
-│   ├── src/main/resources/
-│   │   ├── templates/         # Thymeleaf templates
-│   │   ├── application.yml    # Configuration
-│   │   └── data.sql          # Sample data
-│   ├── database/schema.sql    # Database schema
-│   ├── README.md             # Detailed documentation
-│   ├── DEPLOYMENT.md         # Deployment guide
-│   ├── test-api.http         # API testing
-│   └── run.sh               # Startup script
-├── CONVERSION_SUMMARY.md     # Conversion details
-├── report.md                # Original analysis report
-└── README.md               # This file
+# JPA / Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-## 🔑 Default Credentials
+### Running the Application
 
-- **Admin Email**: admin@note0.com
-- **Admin Password**: admin123
+1.  Open a terminal or command prompt in the root directory of the project.
+2.  Build and run the application using Maven:
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+3.  The server will start on `http://localhost:8080`. You can see the logs in your terminal, including the final `Started Note0Application...` message.
 
-## ✨ Features
+## API Endpoints
 
-- **User Authentication**: JWT-based authentication with role-based access control
-- **Material Upload**: Upload and share academic materials with file validation
-- **Rating System**: Rate materials and view community feedback
-- **Subject Organization**: Organize materials by subjects and modules
-- **Modern UI**: Responsive web interface built with Bootstrap and Thymeleaf
-- **Admin Panel**: User management and material verification
+### Authentication
 
-## 🛠️ Tech Stack
+#### Register a New User
 
-- **Backend**: Spring Boot 3.2.0, Spring Security, Spring Data JPA
-- **Database**: PostgreSQL
-- **Frontend**: Thymeleaf, Bootstrap 5, JavaScript
-- **Authentication**: JWT (JSON Web Tokens)
-- **Build Tool**: Maven
+-   **Endpoint**: `POST /api/auth/register`
+-   **Description**: Creates a new user account.
+-   **Request Body** (`application/json`):
+    ```json
+    {
+      "fullName": "Your Name",
+      "email": "your.email@example.com",
+      "password": "yourStrongPassword"
+    }
+    ```
+-   **Success Response** (`200 OK`):
+    ```json
+    {
+        "id": 1,
+        "fullName": "Your Name",
+        "email": "your.email@example.com",
+        "passwordHash": null,
+        "collegeName": null,
+        "branch": null,
+        "semester": null,
+        "role": "USER",
+        "active": true,
+        "verified": false,
+        "createdAt": "2025-09-15T12:30:00.123456"
+    }
+    ```
+-   **Error Response** (`400 Bad Request`):
+    -   If email is already in use: `"Email already in use"`
+    -   If validation fails (e.g., blank password): Standard Spring validation error response.
 
-## 📚 Documentation
+## How to Test with Postman
 
-- **[Application README](note0-application/README.md)** - Detailed application documentation
-- **[Deployment Guide](note0-application/DEPLOYMENT.md)** - Production deployment instructions
-- **[Conversion Summary](CONVERSION_SUMMARY.md)** - Details about the Node.js to Java conversion
-- **[API Tests](note0-application/test-api.http)** - API endpoint testing
+1.  **Start the application** locally.
+2.  Open **Postman**.
+3.  Create a new request with the method **`POST`**.
+4.  Set the URL to `http://localhost:8080/api/auth/register`.
+5.  Go to the **Body** tab, select **raw**, and choose **JSON** from the dropdown.
+6.  Paste the request body JSON (as shown above) and click **Send**.
+7.  Review the response from the server.
 
-## 🔄 Migration Notes
+## Next Steps
 
-This project was successfully converted from a Node.js application to Java Spring Boot. All original functionality has been preserved and enhanced:
+The project foundation is now solid. The immediate next steps are:
 
-- ✅ All API endpoints maintained
-- ✅ Enhanced security with Spring Security
-- ✅ Modern responsive UI
-- ✅ Improved code organization and maintainability
-- ✅ Production-ready configuration
-
-## 🚀 Getting Started
-
-1. Follow the setup instructions above
-2. Access the web interface at http://localhost:8080
-3. Register a new account or use the admin credentials
-4. Start uploading and sharing materials!
-
-For detailed information, see the [Application README](note0-application/README.md).
+-   [ ] **Implement User Login**: Create a `/api/auth/login` endpoint.
+-   [ ] **JWT Integration**: Generate a JWT on successful login and return it to the user.
+-   [ ] **Token-Based Authentication**: Update Spring Security to validate JWTs for protected endpoints.
+-   [ ] **Create User Profile Endpoint**: Implement a protected `/api/users/me` endpoint that requires a valid JWT.
