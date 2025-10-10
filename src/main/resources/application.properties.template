@@ -1,9 +1,0 @@
-# Aiven PostgreSQL Database Configuration
-spring.datasource.url=jdbc:postgresql://<YOUR_AIVEN_HOST>:<YOUR_AIVEN_PORT>/<YOUR_DATABASE_NAME>?sslmode=require
-spring.datasource.username=<YOUR_AIVEN_USER>
-spring.datasource.password=<YOUR_AIVEN_PASSWORD>
-
-# JPA / Hibernate Configuration
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
