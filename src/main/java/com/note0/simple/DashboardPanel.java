@@ -27,6 +27,7 @@ public class DashboardPanel extends JPanel {
     private final User loggedInUser;
     private final MaterialDAO materialDAO;
     private final SubjectDAO subjectDAO;
+    private final CloudinaryService cloudinaryService;
     private List<Subject> allSubjects; // Cache the list of all subjects
 
     // --- UI Components ---
@@ -48,14 +49,15 @@ public class DashboardPanel extends JPanel {
     private File selectedFile;
     private Map<String, Long> subjectNameToIdMap = new HashMap<>();
 
-    // --- File Storage ---
-    private final String UPLOAD_DIRECTORY = "/home/jithu/Desktop/note0-uploads"; // Change if needed
+    // --- Cloud Storage ---
+    // Files will be uploaded to Cloudinary; DB stores the returned secure URL
 
-    public DashboardPanel(MainFrame mainFrame, User user, MaterialDAO materialDAO, SubjectDAO subjectDAO) {
+    public DashboardPanel(MainFrame mainFrame, User user, MaterialDAO materialDAO, SubjectDAO subjectDAO, CloudinaryService cloudinaryService) {
         this.mainFrame = mainFrame;
         this.loggedInUser = user;
         this.materialDAO = materialDAO;
         this.subjectDAO = subjectDAO;
+        this.cloudinaryService = cloudinaryService;
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -150,8 +152,10 @@ public class DashboardPanel extends JPanel {
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton rateButton = new JButton("Rate Selected");
+        JButton deleteButton = new JButton("Delete Selected");
         JButton uploadButton = new JButton("Upload New Material");
         buttonPanel.add(rateButton);
+        buttonPanel.add(deleteButton);
         buttonPanel.add(uploadButton);
 
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4; bottomPanel.add(buttonPanel, gbc);
@@ -161,6 +165,7 @@ public class DashboardPanel extends JPanel {
         chooseFileButton.addActionListener(e -> handleChooseFile());
         uploadButton.addActionListener(e -> handleUpload());
         rateButton.addActionListener(e -> handleRate());
+        deleteButton.addActionListener(e -> handleDelete());
         
         branchFilterComboBox.addActionListener(e -> populateFilterComboBoxes());
         semesterFilterComboBox.addActionListener(e -> populateFilterComboBoxes());
@@ -268,13 +273,11 @@ public class DashboardPanel extends JPanel {
             return;
         }
         try {
-            String newFileName = UUID.randomUUID().toString() + "_" + selectedFile.getName();
-            Path targetPath = Paths.get(UPLOAD_DIRECTORY, newFileName);
-            Files.createDirectories(targetPath.getParent());
-            Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            String publicId = UUID.randomUUID().toString();
+            String url = cloudinaryService.uploadFile(selectedFile, "note0/materials", publicId);
             String selectedSubjectName = (String) uploadSubjectComboBox.getSelectedItem();
             long subjectId = subjectNameToIdMap.get(selectedSubjectName);
-            materialDAO.addMaterial(titleField.getText(), targetPath.toString(), subjectId, loggedInUser.getId());
+            materialDAO.addMaterial(titleField.getText(), url, subjectId, loggedInUser.getId());
             JOptionPane.showMessageDialog(this, "Upload successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
             loadMaterialsIntoTable();
         } catch (Exception ex) {
@@ -306,6 +309,35 @@ public class DashboardPanel extends JPanel {
         }
     }
 
+    private void handleDelete() {
+        int selectedRow = materialTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a material from the list to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        long materialId = (long) tableModel.getValueAt(selectedRow, 0);
+        String materialTitle = (String) tableModel.getValueAt(selectedRow, 1);
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            this, 
+            "Are you sure you want to delete '" + materialTitle + "'?\n\nThis will remove the material and all its ratings from the database.\nNote: The file will remain on Cloudinary.", 
+            "Confirm Delete", 
+            JOptionPane.YES_NO_OPTION, 
+            JOptionPane.WARNING_MESSAGE
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                materialDAO.deleteMaterial(materialId);
+                JOptionPane.showMessageDialog(this, "Material deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadMaterialsIntoTable();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Failed to delete material: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private void handleOpenFile() {
         int selectedRow = materialTable.getSelectedRow();
         if (selectedRow >= 0) {
@@ -313,11 +345,31 @@ public class DashboardPanel extends JPanel {
             try {
                 Material material = materialDAO.getMaterialById(materialId);
                 if (material != null) {
-                    File fileToOpen = new File(material.getFilePath());
-                    if (fileToOpen.exists() && Desktop.isDesktopSupported()) {
-                        Desktop.getDesktop().open(fileToOpen);
+                    String path = material.getFilePath();
+                    if (path != null && (path.startsWith("http://") || path.startsWith("https://"))) {
+                        try {
+                            String lower = path.toLowerCase();
+                            String suffix = lower.endsWith(".pdf") ? ".pdf" : lower.endsWith(".docx") ? ".docx" : lower.endsWith(".doc") ? ".doc" : lower.endsWith(".pptx") ? ".pptx" : lower.endsWith(".ppt") ? ".ppt" : lower.endsWith(".xlsx") ? ".xlsx" : lower.endsWith(".xls") ? ".xls" : "";
+                            java.net.URL url = new java.net.URL(path);
+                            java.nio.file.Path tmp = java.nio.file.Files.createTempFile("note0_", suffix);
+                            try (java.io.InputStream in = url.openStream()) {
+                                java.nio.file.Files.copy(in, tmp, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            }
+                            if (Desktop.isDesktopSupported()) {
+                                Desktop.getDesktop().open(tmp.toFile());
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Downloaded to: " + tmp.toString(), "Downloaded", JOptionPane.INFORMATION_MESSAGE);
+                            }
+                        } catch (Exception dlex) {
+                            JOptionPane.showMessageDialog(this, "Could not download/open file: " + dlex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
                     } else {
-                        JOptionPane.showMessageDialog(this, "File not found at path: " + material.getFilePath(), "File Error", JOptionPane.ERROR_MESSAGE);
+                        File fileToOpen = new File(path);
+                        if (fileToOpen.exists() && Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().open(fileToOpen);
+                        } else {
+                            JOptionPane.showMessageDialog(this, "File not found at path: " + path, "File Error", JOptionPane.ERROR_MESSAGE);
+                        }
                     }
                 }
             } catch (Exception ex) {

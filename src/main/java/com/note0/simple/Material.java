@@ -6,9 +6,7 @@ public class Material {
     private String uploaderName;
     private String subjectName;
     private String filePath;
-    private double averageRating;
-    private int likeCount;
-    private boolean likedByUser;
+    private double averageRating; // New field
 
     // Getters and Setters
     public long getId() { return id; }
@@ -23,8 +21,4 @@ public class Material {
     public void setFilePath(String filePath) { this.filePath = filePath; }
     public double getAverageRating() { return averageRating; }
     public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
-    public int getLikeCount() { return likeCount; }
-    public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
-    public boolean isLikedByUser() { return likedByUser; }
-    public void setLikedByUser(boolean likedByUser) { this.likedByUser = likedByUser; }
 }

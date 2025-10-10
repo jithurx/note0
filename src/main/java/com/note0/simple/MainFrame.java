@@ -18,14 +18,16 @@ public class MainFrame extends JFrame {
     // DAOs are created once here and passed to the panels that need them.
     // This is more efficient than each panel creating its own DAO.
     private final UserDAO userDAO;
-    private MaterialDAO materialDAO; // Remove final since it's initialized after login
+    private final MaterialDAO materialDAO;
     private final SubjectDAO subjectDAO;
+    private final CloudinaryService cloudinaryService;
 
     public MainFrame() {
         // Initialize all the Data Access Objects
         this.userDAO = new UserDAO();
-        this.materialDAO = null; // Will be initialized with user ID when logged in
+        this.materialDAO = new MaterialDAO();
         this.subjectDAO = new SubjectDAO();
+        this.cloudinaryService = new CloudinaryService();
 
         // Basic JFrame setup
         setTitle("Note0 - Note Sharing Application");
@@ -71,10 +73,8 @@ public class MainFrame extends JFrame {
      * @param user The user who has just logged in.
      */
     public void showDashboardPanel(User user) {
-        // Create the MaterialDAO with the user's ID
-        this.materialDAO = new MaterialDAO(user.getId());
         // Create the dashboard panel, passing all necessary DAOs and the logged-in user
-        DashboardPanel dashboardPanel = new DashboardPanel(this, user, materialDAO, subjectDAO);
+        DashboardPanel dashboardPanel = new DashboardPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
         
         // Add the dashboard panel to our card deck
         mainPanel.add(dashboardPanel, "DASHBOARD_PANEL");

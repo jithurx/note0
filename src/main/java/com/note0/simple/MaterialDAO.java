@@ -12,14 +12,6 @@ import java.util.List;
  */
 public class MaterialDAO {
 
-    private final long currentUserId;
-    private final DatabaseManager dbManager;
-
-    public MaterialDAO(long currentUserId) {
-        this.currentUserId = currentUserId;
-        this.dbManager = DatabaseManager.getInstance();
-    }
-
     /**
      * Retrieves materials from the database, allowing for dynamic filtering.
      * @param titleFilter A string to search for in the material's title.
@@ -32,8 +24,7 @@ public class MaterialDAO {
     public List<Material> getMaterials(String titleFilter, String branchFilter, int semesterFilter, String subjectFilter) throws SQLException {
         // Base query with all necessary joins
         StringBuilder sql = new StringBuilder(
-            "SELECT m.id, m.title, m.file_path, m.average_rating, m.like_count, u.full_name, s.name AS subject_name, " +
-            "(SELECT 1 FROM likes l WHERE l.material_id = m.id AND l.user_id = ?) AS liked_by_user " +
+            "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
             "FROM materials m " +
             "JOIN users u ON m.uploader_id = u.id " +
             "JOIN subjects s ON m.subject_id = s.id"
@@ -70,19 +61,11 @@ public class MaterialDAO {
         sql.append(" ORDER BY m.id DESC");
         
         List<Material> materials = new ArrayList<>();
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
             
             for (int i = 0; i < params.size(); i++) {
                 pstmt.setObject(i + 1, params.get(i));
-            }
-            
-            // Set the currentUserId first for the liked_by_user subquery
-            pstmt.setLong(1, currentUserId);
-            
-            // Start parameters array indexing from 2 since we used index 1 for currentUserId
-            for (int i = 0; i < params.size(); i++) {
-                pstmt.setObject(i + 2, params.get(i));
             }
             
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -94,8 +77,6 @@ public class MaterialDAO {
                     material.setUploaderName(rs.getString("full_name"));
                     material.setSubjectName(rs.getString("subject_name"));
                     material.setAverageRating(rs.getDouble("average_rating"));
-                    material.setLikeCount(rs.getInt("like_count"));
-                    material.setLikedByUser(rs.getObject("liked_by_user") != null);
                     materials.add(material);
                 }
             }
@@ -108,7 +89,7 @@ public class MaterialDAO {
      */
     public void addMaterial(String title, String filePath, long subjectId, long uploaderId) throws SQLException {
         String sql = "INSERT INTO materials (title, file_path, subject_id, uploader_id) VALUES (?, ?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, title);
             pstmt.setString(2, filePath);
@@ -122,14 +103,13 @@ public class MaterialDAO {
      * Retrieves a single Material by its ID.
      */
     public Material getMaterialById(long id) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, m.like_count, u.full_name, s.name AS subject_name, " +
-                     "(SELECT 1 FROM likes l WHERE l.material_id = m.id AND l.user_id = ?) AS liked_by_user " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
                      "WHERE m.id = ?";
         Material material = null;
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -141,8 +121,6 @@ public class MaterialDAO {
                     material.setUploaderName(rs.getString("full_name"));
                     material.setSubjectName(rs.getString("subject_name"));
                     material.setAverageRating(rs.getDouble("average_rating"));
-                    material.setLikeCount(rs.getInt("like_count"));
-                    material.setLikedByUser(rs.getObject("liked_by_user") != null);
                 }
             }
         }
@@ -159,7 +137,7 @@ public class MaterialDAO {
                               "WHERE id = ?";
         Connection conn = null;
         try {
-            conn = dbManager.getConnection();
+            conn = DatabaseManager.getConnection();
             conn.setAutoCommit(false); // Start transaction
             try (PreparedStatement pstmt1 = conn.prepareStatement(upsertSql)) {
                 pstmt1.setLong(1, materialId);
@@ -172,6 +150,39 @@ public class MaterialDAO {
                 pstmt2.setLong(2, materialId);
                 pstmt2.executeUpdate();
             }
+            conn.commit(); // Commit transaction
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
+    /**
+     * Deletes a material and its associated ratings from the database.
+     */
+    public void deleteMaterial(long materialId) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // First delete all ratings for this material
+            try (PreparedStatement pstmt1 = conn.prepareStatement("DELETE FROM ratings WHERE material_id = ?")) {
+                pstmt1.setLong(1, materialId);
+                pstmt1.executeUpdate();
+            }
+            
+            // Then delete the material itself
+            try (PreparedStatement pstmt2 = conn.prepareStatement("DELETE FROM materials WHERE id = ?")) {
+                pstmt2.setLong(1, materialId);
+                pstmt2.executeUpdate();
+            }
+            
             conn.commit(); // Commit transaction
         } catch (SQLException e) {
             if (conn != null) conn.rollback();
