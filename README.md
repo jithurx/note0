@@ -2,7 +2,7 @@
 
 `Note0` is a desktop application built with Java Swing that allows users to register, log in, and share academic materials. This project serves as a foundational example of a database-driven desktop application, demonstrating core concepts of JDBC, secure password handling, file management, and role-based access control without the use of large frameworks like Spring Boot.
 
-All user and material data is stored in a cloud-hosted PostgreSQL database managed by Aiven.
+All user and material data is stored in a cloud-hosted PostgreSQL database managed by Aiven. Uploaded files are stored on Cloudinary and referenced by secure URLs in the database.
 
 **Current Status:** Fully functional with core features implemented.
 
@@ -88,8 +88,22 @@ Follow these steps to get the application running on your local machine.
 ### Configuration
 1.  Open the file `src/main/java/com/note0/simple/DatabaseManager.java`.
 2.  Replace the placeholder values for `DB_URL`, `USER`, and `PASSWORD` with your actual Aiven credentials.
-3.  Open the file `src/main/java/com/note0/simple/DashboardForm.java`.
-4.  Update the `UPLOAD_DIRECTORY` constant to a path of an existing folder on your local machine where uploaded files should be stored.
+3.  Set the `CLOUDINARY_URL` environment variable before running the app. Format: `cloudinary://<api_key>:<api_secret>@<cloud_name>`
+    - Windows PowerShell example:
+      ```bash
+      $env:CLOUDINARY_URL = "cloudinary://API_KEY:API_SECRET@CLOUD_NAME"
+      mvn compile exec:java
+      ```
+    - Windows CMD example:
+      ```bash
+      set CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+      mvn compile exec:java
+      ```
+    - macOS/Linux example:
+      ```bash
+      export CLOUDINARY_URL="cloudinary://API_KEY:API_SECRET@CLOUD_NAME"
+      mvn compile exec:java
+      ```
 
 ### Build and Run
 1.  Open a terminal or command prompt.

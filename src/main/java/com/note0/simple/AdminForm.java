@@ -13,8 +13,8 @@ public class AdminForm extends JFrame {
     private JTable subjectTable;
     private DefaultTableModel tableModel;
 
-    public AdminForm(User adminUser, SubjectDAO subjectDAO) {
-        this.materialDAO = new MaterialDAO(adminUser.getId());
+    public AdminForm(SubjectDAO subjectDAO) {
+        this.materialDAO = new MaterialDAO();
         this.subjectDAO = subjectDAO;
 
         setTitle("Admin Panel - Manage Subjects");

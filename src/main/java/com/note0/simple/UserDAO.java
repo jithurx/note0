@@ -11,11 +11,6 @@ import java.sql.SQLException;
  * This class isolates the SQL logic from the rest of the application.
  */
 public class UserDAO {
-    private final DatabaseManager dbManager;
-
-    public UserDAO() {
-        this.dbManager = DatabaseManager.getInstance();
-    }
 
     /**
      * Inserts a new user record into the database.
@@ -30,7 +25,7 @@ public class UserDAO {
         String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
 
         // Use try-with-resources to ensure the connection and statement are always closed
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // Set the values for the placeholders (?) in the SQL query
@@ -61,7 +56,7 @@ public class UserDAO {
         User user = null;
 
         // Use try-with-resources for automatic resource management
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, email);
@@ -87,25 +82,5 @@ public class UserDAO {
         
         // Return the user object if login was successful, or null if it failed
         return user;
-    }
-
-    /**
-     * Updates a user's password in the database.
-     * @param userId The ID of the user whose password is being updated.
-     * @param newPlainPassword The new password in plain text (will be hashed before storage).
-     * @throws SQLException if a database access error occurs.
-     */
-    public void updatePassword(long userId, String newPlainPassword) throws SQLException {
-        String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
-        
-        // Hash the new password using jBCrypt
-        String hashedPassword = BCrypt.hashpw(newPlainPassword, BCrypt.gensalt());
-
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, hashedPassword);
-            pstmt.setLong(2, userId);
-            pstmt.executeUpdate();
-        }
     }
 }

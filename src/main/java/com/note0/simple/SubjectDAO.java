@@ -11,11 +11,6 @@ import java.util.List;
  * SubjectDAO handles all database CRUD (Create, Read, Update, Delete) operations for Subjects.
  */
 public class SubjectDAO {
-    private final DatabaseManager dbManager;
-
-    public SubjectDAO() {
-        this.dbManager = DatabaseManager.getInstance();
-    }
 
     /**
      * Retrieves all subjects from the database, ordered by semester, branch, and name.
@@ -27,7 +22,7 @@ public class SubjectDAO {
         String sql = "SELECT id, name, branch, semester FROM subjects ORDER BY semester, branch, name";
         List<Subject> subjects = new ArrayList<>();
 
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
@@ -52,7 +47,7 @@ public class SubjectDAO {
      */
     public void addSubject(String name, String branch, int semester) throws SQLException {
         String sql = "INSERT INTO subjects (name, branch, semester) VALUES (?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name);
             pstmt.setString(2, branch);
@@ -71,7 +66,7 @@ public class SubjectDAO {
      */
     public void updateSubject(long id, String newName, String newBranch, int newSemester) throws SQLException {
         String sql = "UPDATE subjects SET name = ?, branch = ?, semester = ? WHERE id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newName);
             pstmt.setString(2, newBranch);
@@ -88,7 +83,7 @@ public class SubjectDAO {
      */
     public void deleteSubject(long id) throws SQLException {
         String sql = "DELETE FROM subjects WHERE id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
