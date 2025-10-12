@@ -9,9 +9,15 @@ import java.util.List;
 
 public class MaterialDAO {
 
-    public List<Material> getMaterials(String titleFilter, String subjectFilter) throws SQLException {
+    private final UserDAO userDAO;
+
+    public MaterialDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
+    public List<Material> getMaterials(String titleFilter, String subjectFilter, int userSemester) throws SQLException {
         StringBuilder sql = new StringBuilder(
-            "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+            "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name, s.semester " +
             "FROM materials m " +
             "JOIN users u ON m.uploader_id = u.id " +
             "JOIN subjects s ON m.subject_id = s.id"
@@ -29,32 +35,15 @@ public class MaterialDAO {
         if (subjectFilter != null && !subjectFilter.isBlank() && !subjectFilter.equals("All Subjects")) {
             sql.append(hasWhere ? " AND" : " WHERE").append(" s.name = ?");
             params.add(subjectFilter);
+            hasWhere = true;
         }
+
+        sql.append(hasWhere ? " AND" : " WHERE").append(" s.semester = ?");
+        params.add(userSemester);
 
         sql.append(" ORDER BY m.id DESC");
         
-        List<Material> materials = new ArrayList<>();
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
-            
-            for (int i = 0; i < params.size(); i++) {
-                pstmt.setObject(i + 1, params.get(i));
-            }
-            
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Material material = new Material();
-                    material.setId(rs.getLong("id"));
-                    material.setTitle(rs.getString("title"));
-                    material.setFilePath(rs.getString("file_path"));
-                    material.setUploaderName(rs.getString("full_name"));
-                    material.setSubjectName(rs.getString("subject_name"));
-                    material.setAverageRating(rs.getDouble("average_rating"));
-                    materials.add(material);
-                }
-            }
-        }
-        return materials;
+        return getMaterialsFromQuery(sql.toString(), params);
     }
 
     public void addMaterial(String title, String filePath, long subjectId, long uploaderId) throws SQLException {
@@ -79,62 +68,29 @@ public class MaterialDAO {
     }
 
     public Material getMaterialById(long id) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
                      "WHERE m.id = ?";
-        Material material = null;
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setLong(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    material = new Material();
-                    material.setId(rs.getLong("id"));
-                    material.setTitle(rs.getString("title"));
-                    material.setFilePath(rs.getString("file_path"));
-                    material.setUploaderName(rs.getString("full_name"));
-                    material.setSubjectName(rs.getString("subject_name"));
-                    material.setAverageRating(rs.getDouble("average_rating"));
-                }
-            }
-        }
-        return material;
+        List<Material> materials = getMaterialsFromQuery(sql, List.of(id));
+        return materials.isEmpty() ? null : materials.get(0);
     }
 
-    public List<Material> getRecentMaterials(int limit) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+    public List<Material> getRecentMaterials(int limit, int userSemester) throws SQLException {
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
+                     "WHERE s.semester = ? " +
                      "ORDER BY m.id DESC " +
                      "LIMIT ?";
         
-        List<Material> materials = new ArrayList<>();
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, limit);
-            
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Material material = new Material();
-                    material.setId(rs.getLong("id"));
-                    material.setTitle(rs.getString("title"));
-                    material.setFilePath(rs.getString("file_path"));
-                    material.setUploaderName(rs.getString("full_name"));
-                    material.setSubjectName(rs.getString("subject_name"));
-                    material.setAverageRating(rs.getDouble("average_rating"));
-                    materials.add(material);
-                }
-            }
-        }
-        return materials;
+        return getMaterialsFromQuery(sql, List.of(userSemester, limit));
     }
     
     public List<Material> getTopRatedMaterials(int limit) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -142,21 +98,40 @@ public class MaterialDAO {
                      "ORDER BY m.average_rating DESC, m.id DESC " +
                      "LIMIT ?";
         
+        return getMaterialsFromQuery(sql, List.of(limit));
+    }
+    
+    public List<Material> getAllMaterials() throws SQLException {
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
+                     "FROM materials m " +
+                     "JOIN users u ON m.uploader_id = u.id " +
+                     "JOIN subjects s ON m.subject_id = s.id " +
+                     "ORDER BY m.id DESC";
+        
+        return getMaterialsFromQuery(sql, new ArrayList<>());
+    }
+
+    private List<Material> getMaterialsFromQuery(String sql, List<Object> params) throws SQLException {
         List<Material> materials = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, limit);
-            
+
+            for (int i = 0; i < params.size(); i++) {
+                pstmt.setObject(i + 1, params.get(i));
+            }
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Material material = new Material();
                     material.setId(rs.getLong("id"));
                     material.setTitle(rs.getString("title"));
                     material.setFilePath(rs.getString("file_path"));
-                    material.setUploaderName(rs.getString("full_name"));
                     material.setSubjectName(rs.getString("subject_name"));
                     material.setAverageRating(rs.getDouble("average_rating"));
+
+                    User uploader = userDAO.getUserByUsername(rs.getString("username"));
+                    material.setUploader(uploader);
+
                     materials.add(material);
                 }
             }

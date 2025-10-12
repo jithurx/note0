@@ -23,7 +23,7 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         this.userDAO = new UserDAO();
-        this.materialDAO = new MaterialDAO();
+        this.materialDAO = new MaterialDAO(this.userDAO);
         this.subjectDAO = new SubjectDAO();
         this.cloudinaryService = new CloudinaryService();
 
@@ -67,8 +67,8 @@ public class MainFrame extends JFrame {
         tabbedPane.addTab("Profile", profilePanel);
 
         if ("ADMIN".equals(user.getRole())) {
-            AdminPanel adminPanel = new AdminPanel(subjectDAO, materialDAO);
-            tabbedPane.addTab("Admin", adminPanel);
+            AdminForm adminForm = new AdminForm(subjectDAO, userDAO, materialDAO);
+            tabbedPane.addTab("Admin", adminForm);
         }
 
         mainPanel.add(tabbedPane, "MAIN_APP_PANEL");

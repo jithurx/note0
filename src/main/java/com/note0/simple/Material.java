@@ -3,7 +3,7 @@ package com.note0.simple;
 public class Material {
     private long id;
     private String title;
-    private String uploaderName;
+    private User uploader;
     private String subjectName;
     private String filePath;
     private double averageRating; // New field
@@ -13,8 +13,8 @@ public class Material {
     public void setId(long id) { this.id = id; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    public String getUploaderName() { return uploaderName; }
-    public void setUploaderName(String uploaderName) { this.uploaderName = uploaderName; }
+    public User getUploader() { return uploader; }
+    public void setUploader(User uploader) { this.uploader = uploader; }
     public String getSubjectName() { return subjectName; }
     public void setSubjectName(String subjectName) { this.subjectName = subjectName; }
     public String getFilePath() { return filePath; }
