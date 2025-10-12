@@ -69,6 +69,15 @@ public class MaterialDAO {
         }
     }
 
+    public void deleteMaterial(long materialId) throws SQLException {
+        String sql = "DELETE FROM materials WHERE id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, materialId);
+            pstmt.executeUpdate();
+        }
+    }
+
     public Material getMaterialById(long id) throws SQLException {
         String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
