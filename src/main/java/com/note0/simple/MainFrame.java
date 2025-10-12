@@ -13,8 +13,9 @@ import java.awt.*;
  */
 public class MainFrame extends JFrame {
 
-    private JPanel mainPanel;
-    private CardLayout cardLayout;
+    private final JPanel mainPanel;
+    private final CardLayout cardLayout;
+    private JTabbedPane tabbedPane; // Main application tabs
 
     private final UserDAO userDAO;
     private final MaterialDAO materialDAO;
@@ -23,7 +24,7 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         this.userDAO = new UserDAO();
-        this.materialDAO = new MaterialDAO(this.userDAO);
+        this.materialDAO = new MaterialDAO(); // FIX: Removed UserDAO dependency
         this.subjectDAO = new SubjectDAO();
         this.cloudinaryService = new CloudinaryService();
 
@@ -47,6 +48,11 @@ public class MainFrame extends JFrame {
     }
 
     public void showLoginPanel() {
+        // Reset the tabbed pane on logout
+        if (tabbedPane != null) {
+            mainPanel.remove(tabbedPane);
+            tabbedPane = null;
+        }
         cardLayout.show(mainPanel, "LOGIN_PANEL");
     }
 
@@ -54,30 +60,44 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainPanel, "REGISTER_PANEL");
     }
 
+    /**
+     * Shows the main application panel with tabs. If not already created,
+     * it initializes the tabbed pane and all the main panels.
+     * @param user The logged-in user.
+     */
     public void showFeedPanel(User user) {
-        JTabbedPane tabbedPane = new JTabbedPane();
+        if (tabbedPane == null) {
+            tabbedPane = new JTabbedPane();
 
-        FeedPanel feedPanel = new FeedPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
-        tabbedPane.addTab("Home", feedPanel);
+            FeedPanel feedPanel = new FeedPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
+            tabbedPane.addTab("Home", feedPanel);
 
-        DashboardPanel dashboardPanel = new DashboardPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
-        tabbedPane.addTab("Browse", dashboardPanel);
-        
-        ProfilePanel profilePanel = new ProfilePanel(userDAO, user);
-        tabbedPane.addTab("Profile", profilePanel);
+            DashboardPanel dashboardPanel = new DashboardPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
+            tabbedPane.addTab("Browse", dashboardPanel);
 
-        if ("ADMIN".equals(user.getRole())) {
-            AdminForm adminForm = new AdminForm(subjectDAO, userDAO, materialDAO);
-            tabbedPane.addTab("Admin", adminForm);
+            ProfilePanel profilePanel = new ProfilePanel(userDAO, user);
+            tabbedPane.addTab("Profile", profilePanel);
+
+            if ("ADMIN".equals(user.getRole())) {
+                AdminForm adminForm = new AdminForm(subjectDAO, userDAO, materialDAO);
+                tabbedPane.addTab("Admin", adminForm);
+            }
+
+            mainPanel.add(tabbedPane, "MAIN_APP_PANEL");
         }
-
-        mainPanel.add(tabbedPane, "MAIN_APP_PANEL");
         cardLayout.show(mainPanel, "MAIN_APP_PANEL");
     }
 
+    /**
+     * Switches the view to the "Browse" tab in the main application panel.
+     * @param user The logged-in user (required to ensure the panel is shown).
+     */
     public void showDashboardPanel(User user) {
-        // This method is now effectively replaced by the tabbed pane in showFeedPanel
-        // but we can keep it for potential future use or specific navigation needs.
-        showFeedPanel(user); 
+        // Ensure the main app panel is visible first
+        showFeedPanel(user);
+        // Switch to the 'Browse' tab (index 1)
+        if (tabbedPane != null) {
+            tabbedPane.setSelectedIndex(1);
+        }
     }
 }

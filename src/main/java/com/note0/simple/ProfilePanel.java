@@ -2,66 +2,71 @@ package com.note0.simple;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 
 public class ProfilePanel extends JPanel {
 
     private final UserDAO userDAO;
-    private final User currentUser;
+    private final User loggedInUser;
 
-    private JTextField fullNameField = new JTextField(20);
-    private JTextField emailField = new JTextField(20);
-    private JTextField collegeNameField = new JTextField(20);
-    private JSpinner semesterSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 8, 1));
-    private JButton updateButton = new JButton("Update Profile");
-
-    public ProfilePanel(UserDAO userDAO, User currentUser) {
+    public ProfilePanel(UserDAO userDAO, User user) {
         this.userDAO = userDAO;
-        this.currentUser = currentUser;
+        this.loggedInUser = user;
 
         setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder("Your Profile"));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        add(new JLabel("Full Name:"), gbc);
+        gbc.gridy++;
+        add(new JLabel("Username:"), gbc);
+        gbc.gridy++;
+        add(new JLabel("Role:"), gbc);
+        gbc.gridy++;
+        add(new JLabel("Semester:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.EAST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0; add(new JLabel("Full Name:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 0; add(fullNameField, gbc);
+        JTextField fullNameField = new JTextField(loggedInUser.getFullName(), 20);
+        JTextField usernameField = new JTextField(loggedInUser.getUsername(), 20);
+        usernameField.setEditable(false);
+        JTextField roleField = new JTextField(loggedInUser.getRole(), 20);
+        roleField.setEditable(false);
+        JTextField semesterField = new JTextField(String.valueOf(loggedInUser.getSemester()), 20);
 
-        gbc.gridx = 0; gbc.gridy = 1; add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 1; add(emailField, gbc);
+        add(fullNameField, gbc);
+        gbc.gridy++;
+        add(usernameField, gbc);
+        gbc.gridy++;
+        add(roleField, gbc);
+        gbc.gridy++;
+        add(semesterField, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; add(new JLabel("College Name:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 2; add(collegeNameField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3; add(new JLabel("Semester:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; add(semesterSpinner, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton updateButton = new JButton("Update Profile");
         add(updateButton, gbc);
 
-        updateButton.addActionListener(e -> updateUserProfile());
+        updateButton.addActionListener(e -> {
+            String newFullName = fullNameField.getText();
+            int newSemester = Integer.parseInt(semesterField.getText());
 
-        loadProfile();
-    }
-
-    private void loadProfile() {
-        fullNameField.setText(currentUser.getFullName());
-        emailField.setText(currentUser.getEmail());
-        collegeNameField.setText(currentUser.getCollegeName());
-        semesterSpinner.setValue(currentUser.getSemester());
-    }
-
-    private void updateUserProfile() {
-        currentUser.setFullName(fullNameField.getText());
-        currentUser.setEmail(emailField.getText());
-        currentUser.setCollegeName(collegeNameField.getText());
-        currentUser.setSemester((int) semesterSpinner.getValue());
-
-        try {
-            userDAO.updateUser(currentUser);
-            JOptionPane.showMessageDialog(this, "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error updating profile: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            try {
+                userDAO.updateUser(loggedInUser.getId(), newFullName, newSemester);
+                loggedInUser.setFullName(newFullName);
+                loggedInUser.setSemester(newSemester);
+                JOptionPane.showMessageDialog(this, "Profile updated successfully!");
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error updating profile: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 }

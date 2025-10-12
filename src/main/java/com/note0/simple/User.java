@@ -13,7 +13,6 @@ public class User {
     private String role;
     private String collegeName;
     private int semester;
-    private String username;
 
     // This field is only used temporarily to hold the plain-text password
     // during the registration process before it gets hashed.
@@ -90,13 +89,5 @@ public class User {
 
     public void setSemester(int semester) {
         this.semester = semester;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 }

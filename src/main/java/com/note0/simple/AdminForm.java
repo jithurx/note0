@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class AdminForm extends JFrame {
+public class AdminForm extends JPanel {
 
     private final MaterialDAO materialDAO;
     private final SubjectDAO subjectDAO;
@@ -16,10 +16,7 @@ public class AdminForm extends JFrame {
         this.userDAO = userDAO;
         this.materialDAO = materialDAO;
 
-        setTitle("Admin Panel");
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -119,15 +116,15 @@ public class AdminForm extends JFrame {
     private JPanel createUserPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        DefaultTableModel userTableModel = new DefaultTableModel(new String[]{"ID", "Username", "Role", "Semester"}, 0);
+        DefaultTableModel userTableModel = new DefaultTableModel(new String[]{"ID", "Full Name", "Role", "Semester"}, 0);
         JTable userTable = new JTable(userTableModel);
         loadUsers(userTableModel);
 
         JButton deleteUserButton = new JButton("Delete Selected User");
-        
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(deleteUserButton);
-        
+
         panel.add(new JScrollPane(userTable), BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -138,10 +135,10 @@ public class AdminForm extends JFrame {
                 return;
             }
             long userId = (long) userTableModel.getValueAt(selectedRow, 0);
-            String username = (String) userTableModel.getValueAt(selectedRow, 1);
+            String fullName = (String) userTableModel.getValueAt(selectedRow, 1);
 
             int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete user '" + username + "'?",
+                    "Are you sure you want to delete user '" + fullName + "'?",
                     "Confirm Deletion",
                     JOptionPane.YES_NO_OPTION);
 
@@ -172,7 +169,7 @@ public class AdminForm extends JFrame {
 
         panel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
-        
+
         deleteMaterialButton.addActionListener(e -> {
             int selectedRow = materialTable.getSelectedRow();
             if (selectedRow < 0) {
@@ -217,7 +214,7 @@ public class AdminForm extends JFrame {
         try {
             List<User> users = userDAO.getAllUsers();
             for (User user : users) {
-                model.addRow(new Object[]{user.getId(), user.getUsername(), user.getRole(), user.getSemester()});
+                model.addRow(new Object[]{user.getId(), user.getFullName(), user.getRole(), user.getSemester()});
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Could not load users.");
@@ -229,7 +226,7 @@ public class AdminForm extends JFrame {
         try {
             List<Material> materials = materialDAO.getAllMaterials();
             for (Material material : materials) {
-                model.addRow(new Object[]{material.getId(), material.getTitle(), material.getUploader().getUsername()});
+                model.addRow(new Object[]{material.getId(), material.getTitle(), material.getUploaderName()});
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Could not load materials.");

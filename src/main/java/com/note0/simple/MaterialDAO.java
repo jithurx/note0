@@ -9,15 +9,9 @@ import java.util.List;
 
 public class MaterialDAO {
 
-    private final UserDAO userDAO;
-
-    public MaterialDAO(UserDAO userDAO) {
-        this.userDAO = userDAO;
-    }
-
-    public List<Material> getMaterials(String titleFilter, String subjectFilter, int userSemester) throws SQLException {
+    public List<Material> getMaterials(String titleFilter, String subjectFilter, Integer userSemester) throws SQLException {
         StringBuilder sql = new StringBuilder(
-            "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name, s.semester " +
+            "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name, s.semester " +
             "FROM materials m " +
             "JOIN users u ON m.uploader_id = u.id " +
             "JOIN subjects s ON m.subject_id = s.id"
@@ -38,12 +32,18 @@ public class MaterialDAO {
             hasWhere = true;
         }
 
-        sql.append(hasWhere ? " AND" : " WHERE").append(" s.semester = ?");
-        params.add(userSemester);
+        if (userSemester != null) {
+            sql.append(hasWhere ? " AND" : " WHERE").append(" s.semester = ?");
+            params.add(userSemester);
+        }
 
         sql.append(" ORDER BY m.id DESC");
         
         return getMaterialsFromQuery(sql.toString(), params);
+    }
+
+    public List<Material> getMaterials(String titleFilter, String subjectFilter) throws SQLException {
+        return getMaterials(titleFilter, subjectFilter, null);
     }
 
     public void addMaterial(String title, String filePath, long subjectId, long uploaderId) throws SQLException {
@@ -68,7 +68,7 @@ public class MaterialDAO {
     }
 
     public Material getMaterialById(long id) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -78,7 +78,7 @@ public class MaterialDAO {
     }
 
     public List<Material> getRecentMaterials(int limit, int userSemester) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -90,7 +90,7 @@ public class MaterialDAO {
     }
     
     public List<Material> getTopRatedMaterials(int limit) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -102,7 +102,7 @@ public class MaterialDAO {
     }
     
     public List<Material> getAllMaterials() throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.username, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -128,10 +128,7 @@ public class MaterialDAO {
                     material.setFilePath(rs.getString("file_path"));
                     material.setSubjectName(rs.getString("subject_name"));
                     material.setAverageRating(rs.getDouble("average_rating"));
-
-                    User uploader = userDAO.getUserByUsername(rs.getString("username"));
-                    material.setUploader(uploader);
-
+                    material.setUploaderName(rs.getString("full_name"));
                     materials.add(material);
                 }
             }
