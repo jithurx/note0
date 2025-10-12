@@ -60,7 +60,7 @@ public class LoginForm extends JFrame {
                     dispose();
 
                     // Create and show the main DashboardForm with all required dependencies
-                    DashboardForm dashboard = new DashboardForm(loggedInUser, new SubjectDAO(), new MaterialDAO());
+                    MainFrame dashboard = new MainFrame();
                     dashboard.setVisible(true);
 
                 } else {

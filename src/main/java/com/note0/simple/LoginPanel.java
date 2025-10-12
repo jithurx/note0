@@ -80,7 +80,7 @@ public class LoginPanel extends JPanel {
         }
 
         try {
-            User user = userDAO.authenticate(email, password);
+            User user = userDAO.loginUser(email, password);
             if (user != null) {
                 mainFrame.showFeedPanel(user);
             } else {

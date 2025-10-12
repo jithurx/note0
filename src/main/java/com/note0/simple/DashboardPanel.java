@@ -165,14 +165,14 @@ public class DashboardPanel extends JPanel {
     private void loadMaterials(String titleFilter, String subjectFilter) {
         tableModel.setRowCount(0); // Clear existing data
         try {
-            List<Material> materials = materialDAO.getMaterials(titleFilter, "All Branches", 0, subjectFilter);
+            List<Material> materials = materialDAO.getMaterials(titleFilter, subjectFilter);
             for (Material material : materials) {
                 // Add a hidden column for the ID
-                Object[] rowData = {material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getRating()), material.getUploaderName(), material.getId()};
+                Object[] rowData = {material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName(), material.getId()};
                 
                 // We need a way to add the ID without displaying it. A custom table model is one way.
                 // For simplicity here, we'll just have to query it again on click.
-                 tableModel.addRow(new Object[]{material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getRating()), material.getUploaderName()});
+                 tableModel.addRow(new Object[]{material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName()});
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Could not load materials: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
