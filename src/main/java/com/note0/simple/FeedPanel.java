@@ -1,7 +1,9 @@
 package com.note0.simple;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -45,10 +47,8 @@ public class FeedPanel extends JPanel {
         List<Material> materials;
         try {
             if (title.equals("Recent Materials")) {
-                materials = materialDAO.getRecentMaterials(10, loggedInUser.getSemester());
-            } else if (title.equals("Recommended Materials")) {
-                materials = materialDAO.getMaterials(null, null, loggedInUser.getSemester());
-            } else { // For Popular
+                materials = materialDAO.getRecentMaterials(10);
+            } else { // For Recommended and Popular, we'll just get top rated for now
                 materials = materialDAO.getTopRatedMaterials(10);
             }
         } catch (SQLException e) {

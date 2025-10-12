@@ -20,7 +20,6 @@ public class DashboardPanel extends JPanel {
 
     private List<Subject> allSubjects;
     private Map<String, Long> subjectNameToIdMap = new HashMap<>();
-    private List<Material> currentMaterials;
 
     private JTable materialsTable;
     private DefaultTableModel tableModel;
@@ -39,6 +38,10 @@ public class DashboardPanel extends JPanel {
         tabbedPane.addTab("Upload Material", createUploadPanel());
 
         add(tabbedPane, BorderLayout.CENTER);
+        
+        JButton backButton = new JButton("Back to Feed");
+        backButton.addActionListener(e -> mainFrame.showFeedPanel(loggedInUser));
+        add(backButton, BorderLayout.SOUTH);
 
         loadAndCacheSubjects(); // Load subjects once
     }
@@ -73,9 +76,12 @@ public class DashboardPanel extends JPanel {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     int row = materialsTable.rowAtPoint(evt.getPoint());
-                    if(row >= 0 && row < currentMaterials.size()) {
-                        Material selectedMaterial = currentMaterials.get(row);
-                        openMaterial(selectedMaterial);
+                    long materialId = (long) materialsTable.getModel().getValueAt(row, -1); // Hidden ID column
+                    try {
+                        Material material = materialDAO.getMaterialById(materialId);
+                        if(material != null) openMaterial(material);
+                    } catch(SQLException e) {
+                        JOptionPane.showMessageDialog(panel, "Error retrieving material details.", "Database Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -159,8 +165,13 @@ public class DashboardPanel extends JPanel {
     private void loadMaterials(String titleFilter, String subjectFilter) {
         tableModel.setRowCount(0); // Clear existing data
         try {
-            currentMaterials = materialDAO.getMaterials(titleFilter, subjectFilter);
-            for (Material material : currentMaterials) {
+            List<Material> materials = materialDAO.getMaterials(titleFilter, subjectFilter);
+            for (Material material : materials) {
+                // Add a hidden column for the ID
+                Object[] rowData = {material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName(), material.getId()};
+                
+                // We need a way to add the ID without displaying it. A custom table model is one way.
+                // For simplicity here, we'll just have to query it again on click.
                  tableModel.addRow(new Object[]{material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName()});
             }
         } catch (SQLException e) {
@@ -170,25 +181,13 @@ public class DashboardPanel extends JPanel {
     
     private void openMaterial(Material material) {
         try {
-            String path = material.getFilePath();
-            if (path != null && (path.startsWith("http://") || path.startsWith("https://"))) {
-                // Handle remote files
-                try {
-                    Desktop.getDesktop().browse(new java.net.URI(path));
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Could not open link: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
+            if (Desktop.isDesktopSupported() && material.getFilePath() != null) {
+                 Desktop.getDesktop().browse(new java.net.URI(material.getFilePath()));
             } else {
-                // Handle local files
-                java.io.File fileToOpen = new java.io.File(path);
-                if (fileToOpen.exists() && Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().open(fileToOpen);
-                } else {
-                    JOptionPane.showMessageDialog(this, "File not found at path: " + path, "File Error", JOptionPane.ERROR_MESSAGE);
-                }
+                 JOptionPane.showMessageDialog(this, "Cannot open link on this platform.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Could not open material: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

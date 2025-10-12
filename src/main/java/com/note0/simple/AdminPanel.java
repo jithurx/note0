@@ -38,23 +38,35 @@ public class AdminPanel extends JPanel {
 
         // --- Materials Panel ---
         JPanel materialsPanel = new JPanel(new BorderLayout(10, 10));
-        materialsPanel.setBorder(BorderFactory.createTitledBorder("Manage Materials"));
+        materialsPanel.setBorder(BorderFactory.createTitledBorder("Review Pending Materials"));
 
-        materialTableModel = new DefaultTableModel(new String[]{"ID", "Title", "Uploader", "Subject"}, 0);
+        materialTableModel = new DefaultTableModel(new String[]{"ID", "Title", "Uploader", "Subject", "Status"}, 0);
         materialTable = new JTable(materialTableModel);
         materialsPanel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
 
-        JButton deleteMaterialButton = new JButton("Delete Selected Material");
-        materialsPanel.add(deleteMaterialButton, BorderLayout.SOUTH);
+        JPanel materialButtonPanel = new JPanel(new FlowLayout());
+        JButton approveButton = new JButton("Approve Selected");
+        JButton rejectButton = new JButton("Reject Selected");
+        JButton deleteMaterialButton = new JButton("Delete Selected");
+        JButton refreshButton = new JButton("Refresh");
+        
+        materialButtonPanel.add(approveButton);
+        materialButtonPanel.add(rejectButton);
+        materialButtonPanel.add(deleteMaterialButton);
+        materialButtonPanel.add(refreshButton);
+        materialsPanel.add(materialButtonPanel, BorderLayout.SOUTH);
 
+        approveButton.addActionListener(e -> approveMaterial());
+        rejectButton.addActionListener(e -> rejectMaterial());
         deleteMaterialButton.addActionListener(e -> deleteMaterial());
+        refreshButton.addActionListener(e -> loadPendingMaterials());
         
         // Add both main panels to the AdminPanel
         add(subjectsPanel);
         add(materialsPanel);
 
         loadSubjects();
-        loadMaterials();
+        loadPendingMaterials();
     }
 
     private void loadSubjects() {
@@ -69,15 +81,15 @@ public class AdminPanel extends JPanel {
         }
     }
 
-    private void loadMaterials() {
+    private void loadPendingMaterials() {
         materialTableModel.setRowCount(0);
         try {
-            List<Material> materials = materialDAO.getMaterials(null, null); // Get all materials
+            List<Material> materials = materialDAO.getPendingMaterials();
             for (Material material : materials) {
-                materialTableModel.addRow(new Object[]{material.getId(), material.getTitle(), material.getUploaderName(), material.getSubjectName()});
+                materialTableModel.addRow(new Object[]{material.getId(), material.getTitle(), material.getUploaderName(), material.getSubjectName(), material.getApprovalStatus()});
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading materials: " + e.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading pending materials: " + e.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -112,9 +124,49 @@ public class AdminPanel extends JPanel {
             try {
                 materialDAO.deleteMaterial(id);
                 JOptionPane.showMessageDialog(this, "Material deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                loadMaterials(); // Refresh the list
+                loadPendingMaterials(); // Refresh the list
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error deleting material: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void approveMaterial() {
+        int selectedRow = materialTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a material to approve.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        Long id = (Long) materialTableModel.getValueAt(selectedRow, 0);
+        String title = (String) materialTableModel.getValueAt(selectedRow, 1);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to approve '" + title + "'?", "Confirm Approval", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                materialDAO.updateApprovalStatus(id, "APPROVED");
+                JOptionPane.showMessageDialog(this, "Material approved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadPendingMaterials(); // Refresh the list
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error approving material: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void rejectMaterial() {
+        int selectedRow = materialTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a material to reject.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        Long id = (Long) materialTableModel.getValueAt(selectedRow, 0);
+        String title = (String) materialTableModel.getValueAt(selectedRow, 1);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to reject '" + title + "'?", "Confirm Rejection", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                materialDAO.updateApprovalStatus(id, "REJECTED");
+                JOptionPane.showMessageDialog(this, "Material rejected successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadPendingMaterials(); // Refresh the list
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error rejecting material: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

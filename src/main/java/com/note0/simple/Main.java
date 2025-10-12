@@ -1,6 +1,7 @@
 package com.note0.simple;
 
 import javax.swing.SwingUtilities;
+import java.sql.SQLException;
 
 /**
  * The main entry point for the Note0 Desktop Application.
@@ -18,6 +19,14 @@ public class Main {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                // Create admin user if it doesn't exist
+                try {
+                    UserDAO userDAO = new UserDAO();
+                    userDAO.createAdminUser();
+                } catch (SQLException e) {
+                    System.err.println("Error creating admin user: " + e.getMessage());
+                }
+                
                 // Create the main application frame and make it visible.
                 // The MainFrame will handle all other components and logic from here.
                 new MainFrame().setVisible(true);

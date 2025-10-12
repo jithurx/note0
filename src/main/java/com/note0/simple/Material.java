@@ -7,6 +7,7 @@ public class Material {
     private String subjectName;
     private String filePath;
     private double averageRating; // New field
+    private String approvalStatus; // PENDING, APPROVED, REJECTED
 
     // Getters and Setters
     public long getId() { return id; }
@@ -21,4 +22,6 @@ public class Material {
     public void setFilePath(String filePath) { this.filePath = filePath; }
     public double getAverageRating() { return averageRating; }
     public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
 }

@@ -1,90 +1,109 @@
 package com.note0.simple;
 
+import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserDAO {
 
-    public User authenticate(String username, String password) throws SQLException {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?"; // Plain text password check
+    public void registerUser(User user) throws SQLException {
+        String sql = "INSERT INTO users (full_name, email, password_hash, role, is_active, is_verified, college_name, semester) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
+
+            pstmt.setString(1, user.getFullName());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, hashedPassword);
+            pstmt.setString(4, "USER");
+            pstmt.setBoolean(5, true);
+            pstmt.setBoolean(6, false);
+            pstmt.setString(7, ""); // Default college name
+            pstmt.setInt(8, 1);    // Default semester
+
+            pstmt.executeUpdate();
+        }
+    }
+
+    public User loginUser(String email, String plainPassword) throws SQLException {
+        String sql = "SELECT id, full_name, password_hash, role, college_name, semester FROM users WHERE email = ?";
+        User user = null;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, email);
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return extractUserFromResultSet(rs);
+                    String storedHash = rs.getString("password_hash");
+                    if (BCrypt.checkpw(plainPassword, storedHash)) {
+                        user = new User();
+                        user.setId(rs.getLong("id"));
+                        user.setFullName(rs.getString("full_name"));
+                        user.setEmail(email);
+                        user.setRole(rs.getString("role"));
+                        user.setCollegeName(rs.getString("college_name"));
+                        user.setSemester(rs.getInt("semester"));
+                    }
                 }
             }
         }
-        return null;
-    }
-
-    public void addUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, full_name, password, role, semester) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getFullName());
-            pstmt.setString(3, user.getPassword());
-            pstmt.setString(4, user.getRole());
-            pstmt.setInt(5, user.getSemester());
-            pstmt.executeUpdate();
-
-            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    user.setId(generatedKeys.getLong(1));
-                }
-            }
-        }
-    }
-
-    public void updateUser(long userId, String newFullName, int newSemester) throws SQLException {
-        String sql = "UPDATE users SET full_name = ?, semester = ? WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newFullName);
-            pstmt.setInt(2, newSemester);
-            pstmt.setLong(3, userId);
-            pstmt.executeUpdate();
-        }
-    }
-
-    public void deleteUser(long userId) throws SQLException {
-        String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setLong(1, userId);
-            pstmt.executeUpdate();
-        }
-    }
-
-    public List<User> getAllUsers() throws SQLException {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users ORDER BY full_name";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) {
-                users.add(extractUserFromResultSet(rs));
-            }
-        }
-        return users;
-    }
-
-    private User extractUserFromResultSet(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setId(rs.getLong("id"));
-        user.setUsername(rs.getString("username"));
-        user.setFullName(rs.getString("full_name"));
-        user.setPassword(rs.getString("password"));
-        user.setRole(rs.getString("role"));
-        user.setSemester(rs.getInt("semester"));
         return user;
+    }
+
+    public void updateUser(User user) throws SQLException {
+        String sql = "UPDATE users SET full_name = ?, email = ?, college_name = ?, semester = ? WHERE id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user.getFullName());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, user.getCollegeName());
+            pstmt.setInt(4, user.getSemester());
+            pstmt.setLong(5, user.getId());
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public void createAdminUser() throws SQLException {
+        // Check if admin user already exists
+        String checkSql = "SELECT id FROM users WHERE email = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, "aswin@gmail.com");
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next()) {
+                    // Admin user already exists, update role to ADMIN
+                    String updateSql = "UPDATE users SET role = 'ADMIN' WHERE email = ?";
+                    try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                        updateStmt.setString(1, "aswin@gmail.com");
+                        updateStmt.executeUpdate();
+                    }
+                    return;
+                }
+            }
+        }
+        
+        // Create new admin user
+        String sql = "INSERT INTO users (full_name, email, password_hash, role, is_active, is_verified, college_name, semester) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String hashedPassword = BCrypt.hashpw("123", BCrypt.gensalt());
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, "Admin User");
+            pstmt.setString(2, "aswin@gmail.com");
+            pstmt.setString(3, hashedPassword);
+            pstmt.setString(4, "ADMIN");
+            pstmt.setBoolean(5, true);
+            pstmt.setBoolean(6, true);
+            pstmt.setString(7, "Admin College");
+            pstmt.setInt(8, 1);
+
+            pstmt.executeUpdate();
+        }
     }
 }

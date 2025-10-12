@@ -52,6 +52,17 @@
                 <configuration>
                     <mainClass>com.note0.simple.Main</mainClass>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>migrate-database</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.note0.simple.DatabaseMigration</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
