@@ -18,7 +18,7 @@ public class AdminPanel extends JPanel {
     private JSpinner semesterSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 8, 1));
     private JButton addButton = new JButton("Add Subject");
     private JButton updateButton = new JButton("Update Selected");
-    private JButton deleteButton = new JButton("Delete Selected
+    private JButton deleteButton = new JButton("Delete Selected");
     private JButton clearButton = new JButton("Clear Form");
 
     public AdminPanel(SubjectDAO subjectDAO) {
