@@ -64,15 +64,12 @@ public class NavigationBar extends JPanel {
         JButton button = new JButton();
         
         // Create button text with icon
-        String buttonText = "<html><center>" + buttonType.getIcon() + "<br>" + buttonType.getText() + "</center></html>";
+        String buttonText = buttonType.getIcon() + " " + buttonType.getText();
         button.setText(buttonText);
         
         // Style the button
-        button.setFont(NeoBrutalLookAndFeel.FONT_PIXELIFY.deriveFont(12f));
-        button.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
-        button.setBackground(NeoBrutalLookAndFeel.COLOR_WHITE);
-        button.setBorder(NeoBrutalLookAndFeel.BORDER_BUTTON_SHADOW);
-        button.setPreferredSize(new Dimension(100, 60));
+        button.setFont(NeoBrutalLookAndFeel.FONT_PIXELIFY.deriveFont(10f));
+        button.setPreferredSize(new Dimension(80, 40));
         button.setFocusPainted(false);
         
         // Add action listener
@@ -206,3 +203,5 @@ public class NavigationBar extends JPanel {
         }
     }
 }
+
+

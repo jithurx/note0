@@ -59,18 +59,18 @@ public class MaterialCard extends JPanel {
         
         // Set size based on display mode
         if (displayMode == DisplayMode.COMPACT) {
-            setPreferredSize(new Dimension(250, 160));
-            setMaximumSize(new Dimension(250, 160));
+            setPreferredSize(new Dimension(160, 100));
+            setMaximumSize(new Dimension(160, 100));
         } else {
-            setPreferredSize(new Dimension(300, 200));
-            setMaximumSize(new Dimension(300, 200));
+            setPreferredSize(new Dimension(180, 120));
+            setMaximumSize(new Dimension(180, 120));
         }
     }
     
     private void setupComponents() {
         // Title
         titleLabel = new JLabel(material.getTitle());
-        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(16f));
+        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(12f));
         titleLabel.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
         titleLabel.setHorizontalAlignment(SwingConstants.LEFT);
         
@@ -83,7 +83,7 @@ public class MaterialCard extends JPanel {
         
         // Uploader
         uploaderLabel = new JLabel("by " + material.getUploaderName());
-        uploaderLabel.setFont(NeoBrutalLookAndFeel.FONT_GENERAL_SANS.deriveFont(12f));
+        uploaderLabel.setFont(NeoBrutalLookAndFeel.FONT_GENERAL_SANS.deriveFont(9f));
         uploaderLabel.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
         
         // Rating with stars
@@ -96,7 +96,7 @@ public class MaterialCard extends JPanel {
     private void setupLayout() {
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 12, 8, 12);
+        gbc.insets = new Insets(5, 8, 5, 8);
         
         // File icon at top-left
         gbc.gridx = 0; gbc.gridy = 0;
@@ -200,21 +200,17 @@ public class MaterialCard extends JPanel {
     
     private JLabel createRatingLabel(double rating) {
         JLabel label = new JLabel();
-        label.setFont(NeoBrutalLookAndFeel.FONT_PIXELIFY.deriveFont(12f));
-        label.setForeground(NeoBrutalLookAndFeel.COLOR_ACCENT1);
+        label.setFont(NeoBrutalLookAndFeel.FONT_GENERAL_SANS.deriveFont(10f));
+        label.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
         
         StringBuilder stars = new StringBuilder();
         int fullStars = (int) rating;
-        boolean hasHalfStar = (rating - fullStars) >= 0.5;
         
         for (int i = 0; i < fullStars; i++) {
-            stars.append("★");
-        }
-        if (hasHalfStar) {
-            stars.append("☆");
+            stars.append("*");
         }
         while (stars.length() < 5) {
-            stars.append("☆");
+            stars.append(".");
         }
         
         stars.append(" ").append(String.format("%.1f", rating));
@@ -261,3 +257,5 @@ public class MaterialCard extends JPanel {
         this.clickListener = clickListener;
     }
 }
+
+

@@ -46,8 +46,8 @@ public class LoginPanel extends JPanel {
         // Main card panel
         JPanel cardPanel = new JPanel();
         cardPanel.setLayout(new BorderLayout());
-        cardPanel.setPreferredSize(new Dimension(500, 500));
-        cardPanel.setMaximumSize(new Dimension(500, 500));
+        cardPanel.setPreferredSize(new Dimension(400, 350));
+        cardPanel.setMaximumSize(new Dimension(400, 350));
         
         // Apply asymmetric styling
         NeoBrutalLookAndFeel.styleAsAsymmetricCard(
@@ -61,21 +61,21 @@ public class LoginPanel extends JPanel {
         JPanel contentArea = new JPanel();
         contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
         contentArea.setOpaque(false);
-        contentArea.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        contentArea.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
         // Title with multi-color styling
         titleLabel.setText("Welcome to Note0");
-        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_ANTON.deriveFont(42f));
+        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_ANTON.deriveFont(32f));
         titleLabel.setForeground(NeoBrutalLookAndFeel.COLOR_PRIMARY);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
         // Subtitle
         JLabel subtitleLabel = new JLabel("Sign in to continue");
         subtitleLabel.setFont(NeoBrutalLookAndFeel.FONT_INSTRUMENT_SERIF.deriveFont(16f));
         subtitleLabel.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         
         // Form panel
         JPanel formPanel = createFormPanel();
@@ -135,7 +135,7 @@ public class LoginPanel extends JPanel {
         formPanel.setLayout(new GridBagLayout());
         formPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 10, 15, 10);
+        gbc.insets = new Insets(8, 10, 8, 10);
         
         // Email field with styled label
         JLabel emailLabel = new JLabel("📧 Email:");
@@ -149,7 +149,7 @@ public class LoginPanel extends JPanel {
         emailField.setFont(NeoBrutalLookAndFeel.FONT_GENERAL_SANS.deriveFont(14f));
         emailField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(NeoBrutalLookAndFeel.COLOR_PRIMARY, 2),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -170,7 +170,7 @@ public class LoginPanel extends JPanel {
         passwordField.setFont(NeoBrutalLookAndFeel.FONT_GENERAL_SANS.deriveFont(14f));
         passwordField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(NeoBrutalLookAndFeel.COLOR_SECONDARY, 2),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -183,7 +183,7 @@ public class LoginPanel extends JPanel {
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.CENTER;
-        gbc.insets = new Insets(25, 10, 0, 10);
+        gbc.insets = new Insets(15, 10, 0, 10);
         formPanel.add(buttonPanel, gbc);
         
         return formPanel;
@@ -194,20 +194,14 @@ public class LoginPanel extends JPanel {
         buttonPanel.setOpaque(false);
         
         // Style login button
-        loginButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
-        loginButton.setForeground(NeoBrutalLookAndFeel.COLOR_WHITE);
-        loginButton.setBackground(NeoBrutalLookAndFeel.COLOR_SECONDARY);
-        loginButton.setBorder(NeoBrutalLookAndFeel.BORDER_BUTTON_SHADOW);
-        loginButton.setPreferredSize(new Dimension(120, 50));
         loginButton.setText("LOGIN");
+        loginButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
+        loginButton.setPreferredSize(new Dimension(100, 35));
         
         // Style register button
-        registerNavButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
-        registerNavButton.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
-        registerNavButton.setBackground(NeoBrutalLookAndFeel.COLOR_WHITE);
-        registerNavButton.setBorder(NeoBrutalLookAndFeel.BORDER_BUTTON_SHADOW);
-        registerNavButton.setPreferredSize(new Dimension(160, 50));
         registerNavButton.setText("REGISTER");
+        registerNavButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
+        registerNavButton.setPreferredSize(new Dimension(100, 35));
         
         buttonPanel.add(loginButton);
         buttonPanel.add(registerNavButton);

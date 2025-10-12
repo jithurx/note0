@@ -186,6 +186,9 @@ public class DashboardPanel extends JPanel {
 
         filterPanel.add(controlsPanel, BorderLayout.CENTER);
         
+        // Style filter button
+        styleButton(filterButton);
+        
         // Add action listeners
         filterButton.addActionListener(e -> loadMaterialsIntoGrid());
         branchFilterComboBox.addActionListener(e -> populateFilterComboBoxes());
@@ -265,6 +268,9 @@ public class DashboardPanel extends JPanel {
 
         uploadPanel.add(formPanel, BorderLayout.CENTER);
         
+        // Style choose file button
+        styleButton(chooseFileButton);
+        
         // Add action listeners
         chooseFileButton.addActionListener(e -> handleChooseFile());
     }
@@ -283,16 +289,7 @@ public class DashboardPanel extends JPanel {
      * Applies Neo-Brutal theme styles to an existing button
      */
     private void styleButton(JButton button) {
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(NeoBrutalLookAndFeel.COLOR_ACCENT1);
-            }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(NeoBrutalLookAndFeel.COLOR_SECONDARY);
-            }
-        });
+        button.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(14f));
     }
 
     public void loadAndCacheSubjects() {

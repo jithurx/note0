@@ -46,8 +46,8 @@ public class RegistrationPanel extends JPanel {
         // Main card panel
         JPanel cardPanel = new JPanel();
         cardPanel.setLayout(new BorderLayout());
-        cardPanel.setPreferredSize(new Dimension(500, 600));
-        cardPanel.setMaximumSize(new Dimension(500, 600));
+        cardPanel.setPreferredSize(new Dimension(400, 450));
+        cardPanel.setMaximumSize(new Dimension(400, 450));
         
         // Apply asymmetric styling with slight negative rotation
         NeoBrutalLookAndFeel.styleAsAsymmetricCard(
@@ -61,21 +61,21 @@ public class RegistrationPanel extends JPanel {
         JPanel contentArea = new JPanel();
         contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
         contentArea.setOpaque(false);
-        contentArea.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        contentArea.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
         // Title with multi-color styling
         titleLabel.setText("Create Account");
-        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_ANTON.deriveFont(42f));
+        titleLabel.setFont(NeoBrutalLookAndFeel.FONT_ANTON.deriveFont(32f));
         titleLabel.setForeground(NeoBrutalLookAndFeel.COLOR_SECONDARY);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
         // Subtitle
         JLabel subtitleLabel = new JLabel("Join the community");
         subtitleLabel.setFont(NeoBrutalLookAndFeel.FONT_INSTRUMENT_SERIF.deriveFont(16f));
         subtitleLabel.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         
         // Form panel
         JPanel formPanel = createFormPanel();
@@ -274,20 +274,14 @@ public class RegistrationPanel extends JPanel {
         buttonPanel.setOpaque(false);
         
         // Style register button
-        registerButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
-        registerButton.setForeground(NeoBrutalLookAndFeel.COLOR_WHITE);
-        registerButton.setBackground(NeoBrutalLookAndFeel.COLOR_SECONDARY);
-        registerButton.setBorder(NeoBrutalLookAndFeel.BORDER_BUTTON_SHADOW);
-        registerButton.setPreferredSize(new Dimension(140, 50));
         registerButton.setText("REGISTER");
+        registerButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
+        registerButton.setPreferredSize(new Dimension(140, 50));
         
         // Style back button
-        backToLoginButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
-        backToLoginButton.setForeground(NeoBrutalLookAndFeel.COLOR_TEXT);
-        backToLoginButton.setBackground(NeoBrutalLookAndFeel.COLOR_WHITE);
-        backToLoginButton.setBorder(NeoBrutalLookAndFeel.BORDER_BUTTON_SHADOW);
-        backToLoginButton.setPreferredSize(new Dimension(120, 50));
         backToLoginButton.setText("BACK");
+        backToLoginButton.setFont(NeoBrutalLookAndFeel.FONT_BEBAS_NEUE.deriveFont(18f));
+        backToLoginButton.setPreferredSize(new Dimension(120, 50));
         
         buttonPanel.add(registerButton);
         buttonPanel.add(backToLoginButton);

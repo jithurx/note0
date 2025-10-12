@@ -146,15 +146,8 @@ public class NeoBrutalLookAndFeel {
 
             // == Button Styles ==
             defaults.put("Button.font", FONT_BEBAS_NEUE);
-            defaults.put("Button.background", COLOR_WHITE);
             defaults.put("Button.foreground", COLOR_TEXT);
-            defaults.put("Button.border", createButtonBorder());
-            defaults.put("Button.focus", COLOR_ACCENT1);
-            defaults.put("Button.margin", new Insets(12, 24, 12, 24));
-            defaults.put("Button.rollover", true);
-            defaults.put("Button.rolloverBackground", COLOR_PRIMARY);
-            defaults.put("Button.select", COLOR_ACCENT1);
-            defaults.put("Button.arc", 12); // Rounded corners
+            defaults.put("Button.margin", new Insets(0, 0, 0, 0));
             defaults.put("Button.textShiftOffset", 0); // No text shift when pressed
             
             // Table styles with better contrast and readability
@@ -373,13 +366,13 @@ public class NeoBrutalLookAndFeel {
      */
     public static JLabel createStickerBadge(String text, Color bgColor, Color textColor) {
         JLabel badge = new JLabel(text);
-        badge.setFont(FONT_PIXELIFY.deriveFont(12f));
+        badge.setFont(FONT_PIXELIFY.deriveFont(8f));
         badge.setForeground(textColor);
         badge.setBackground(bgColor);
         badge.setOpaque(true);
         badge.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(COLOR_BORDER, 2),
-            BorderFactory.createEmptyBorder(4, 8, 4, 8)
+            BorderFactory.createEmptyBorder(1, 4, 1, 4)
         ));
         return badge;
     }
