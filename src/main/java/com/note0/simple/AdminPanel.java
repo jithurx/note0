@@ -6,40 +6,31 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * The admin panel for managing subjects.
- * Provides a full CRUD (Create, Read, Update, Delete) interface.
- */
 public class AdminPanel extends JPanel {
 
     private final SubjectDAO subjectDAO;
-    private final DashboardPanel dashboardPanel; // A reference to the dashboard to refresh it
 
     private JTable subjectTable;
     private DefaultTableModel tableModel;
 
-    // Form components
     private JTextField nameField = new JTextField(20);
     private JTextField branchField = new JTextField(20);
     private JSpinner semesterSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 8, 1));
     private JButton addButton = new JButton("Add Subject");
     private JButton updateButton = new JButton("Update Selected");
-    private JButton deleteButton = new JButton("Delete Selected");
+    private JButton deleteButton = new JButton("Delete Selected
     private JButton clearButton = new JButton("Clear Form");
 
-    public AdminPanel(DashboardPanel dashboardPanel, SubjectDAO subjectDAO) {
-        this.dashboardPanel = dashboardPanel;
+    public AdminPanel(SubjectDAO subjectDAO) {
         this.subjectDAO = subjectDAO;
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- CENTER: Table of Subjects ---
         tableModel = new DefaultTableModel(new String[]{"ID", "Name", "Branch", "Semester"}, 0);
         subjectTable = new JTable(tableModel);
         add(new JScrollPane(subjectTable), BorderLayout.CENTER);
 
-        // --- BOTTOM: Form for Adding/Editing ---
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Subject Details"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -49,7 +40,7 @@ public class AdminPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 0; formPanel.add(new JLabel("Name:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0; gbc.gridwidth = 3; formPanel.add(nameField, gbc);
 
-        gbc.gridwidth = 1; // Reset gridwidth
+        gbc.gridwidth = 1;
         gbc.gridx = 0; gbc.gridy = 1; formPanel.add(new JLabel("Branch:"), gbc);
         gbc.gridx = 1; gbc.gridy = 1; formPanel.add(branchField, gbc);
 
@@ -66,7 +57,6 @@ public class AdminPanel extends JPanel {
 
         add(formPanel, BorderLayout.SOUTH);
 
-        // --- Attach Event Listeners ---
         subjectTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) populateFormFromSelectedRow();
         });
@@ -76,12 +66,11 @@ public class AdminPanel extends JPanel {
         deleteButton.addActionListener(e -> deleteSubject());
         clearButton.addActionListener(e -> clearForm());
 
-        // --- Load Initial Data ---
         loadSubjects();
     }
 
     private void loadSubjects() {
-        tableModel.setRowCount(0); // Clear table
+        tableModel.setRowCount(0);
         try {
             List<Subject> subjects = subjectDAO.getAllSubjects();
             for (Subject subject : subjects) {
@@ -112,8 +101,7 @@ public class AdminPanel extends JPanel {
         try {
             subjectDAO.addSubject(nameField.getText(), branchField.getText(), (int) semesterSpinner.getValue());
             JOptionPane.showMessageDialog(this, "Subject added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            loadSubjects(); // Refresh this panel's table
-            dashboardPanel.refreshData(); // CORRECTED LINE: Refresh the main dashboard
+            loadSubjects();
             clearForm();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error adding subject: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -131,7 +119,6 @@ public class AdminPanel extends JPanel {
             subjectDAO.updateSubject(id, nameField.getText(), branchField.getText(), (int) semesterSpinner.getValue());
             JOptionPane.showMessageDialog(this, "Subject updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             loadSubjects();
-            dashboardPanel.refreshData(); // CORRECTED LINE: Refresh the main dashboard
             clearForm();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error updating subject: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -151,7 +138,6 @@ public class AdminPanel extends JPanel {
                 subjectDAO.deleteSubject(id);
                 JOptionPane.showMessageDialog(this, "Subject deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadSubjects();
-                dashboardPanel.refreshData(); // CORRECTED LINE: Refresh the main dashboard
                 clearForm();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error deleting subject: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

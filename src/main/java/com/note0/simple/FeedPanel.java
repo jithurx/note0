@@ -26,7 +26,7 @@ public class FeedPanel extends JPanel {
         browseButton.addActionListener(e -> mainFrame.showDashboardPanel(loggedInUser));
         JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> mainFrame.showLoginPanel());
-        navPanel.add(new JLabel("Welcome, " + loggedInUser.getUsername()));
+        navPanel.add(new JLabel("Welcome, " + loggedInUser.getFullName()));
         navPanel.add(browseButton);
         navPanel.add(logoutButton);
         add(navPanel, BorderLayout.NORTH);
@@ -78,8 +78,8 @@ public class FeedPanel extends JPanel {
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.add(new JLabel("Title: " + material.getTitle()));
-        infoPanel.add(new JLabel("Subject: " + material.getSubjectId())); // Simplified
-        infoPanel.add(new JLabel("Rating: " + String.format("%.1f", material.getRating())));
+        infoPanel.add(new JLabel("Subject: " + material.getSubjectName())); // Simplified
+        infoPanel.add(new JLabel("Rating: " + String.format("%.1f", material.getAverageRating())));
 
         JButton viewButton = new JButton("View");
         viewButton.addActionListener(e -> handleMaterialClick(material));
