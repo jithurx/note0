@@ -194,4 +194,134 @@ public class MaterialDAO {
             }
         }
     }
+    
+    /**
+     * Gets the most recently uploaded materials.
+     * @param limit Maximum number of materials to return
+     * @return List of recent materials
+     * @throws SQLException if a database error occurs
+     */
+    public List<Material> getRecentMaterials(int limit) throws SQLException {
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+                     "FROM materials m " +
+                     "JOIN users u ON m.uploader_id = u.id " +
+                     "JOIN subjects s ON m.subject_id = s.id " +
+                     "ORDER BY m.id DESC " +
+                     "LIMIT ?";
+        
+        List<Material> materials = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, limit);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setId(rs.getLong("id"));
+                    material.setTitle(rs.getString("title"));
+                    material.setFilePath(rs.getString("file_path"));
+                    material.setUploaderName(rs.getString("full_name"));
+                    material.setSubjectName(rs.getString("subject_name"));
+                    material.setAverageRating(rs.getDouble("average_rating"));
+                    materials.add(material);
+                }
+            }
+        }
+        return materials;
+    }
+    
+    /**
+     * Gets the highest rated materials.
+     * @param limit Maximum number of materials to return
+     * @return List of top-rated materials
+     * @throws SQLException if a database error occurs
+     */
+    public List<Material> getTopRatedMaterials(int limit) throws SQLException {
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+                     "FROM materials m " +
+                     "JOIN users u ON m.uploader_id = u.id " +
+                     "JOIN subjects s ON m.subject_id = s.id " +
+                     "WHERE m.average_rating > 0 " +
+                     "ORDER BY m.average_rating DESC, m.id DESC " +
+                     "LIMIT ?";
+        
+        List<Material> materials = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, limit);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setId(rs.getLong("id"));
+                    material.setTitle(rs.getString("title"));
+                    material.setFilePath(rs.getString("file_path"));
+                    material.setUploaderName(rs.getString("full_name"));
+                    material.setSubjectName(rs.getString("subject_name"));
+                    material.setAverageRating(rs.getDouble("average_rating"));
+                    materials.add(material);
+                }
+            }
+        }
+        return materials;
+    }
+    
+    /**
+     * Gets materials filtered by branch and semester.
+     * @param branch The branch to filter by (null for all branches)
+     * @param semester The semester to filter by (0 for all semesters)
+     * @param limit Maximum number of materials to return
+     * @return List of materials matching the criteria
+     * @throws SQLException if a database error occurs
+     */
+    public List<Material> getMaterialsByBranchSemester(String branch, int semester, int limit) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+            "FROM materials m " +
+            "JOIN users u ON m.uploader_id = u.id " +
+            "JOIN subjects s ON m.subject_id = s.id"
+        );
+        
+        List<Object> params = new ArrayList<>();
+        boolean hasWhere = false;
+        
+        if (branch != null && !branch.isBlank()) {
+            sql.append(" WHERE s.branch = ?");
+            params.add(branch);
+            hasWhere = true;
+        }
+        
+        if (semester > 0) {
+            sql.append(hasWhere ? " AND" : " WHERE").append(" s.semester = ?");
+            params.add(semester);
+        }
+        
+        sql.append(" ORDER BY m.average_rating DESC, m.id DESC LIMIT ?");
+        params.add(limit);
+        
+        List<Material> materials = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                pstmt.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setId(rs.getLong("id"));
+                    material.setTitle(rs.getString("title"));
+                    material.setFilePath(rs.getString("file_path"));
+                    material.setUploaderName(rs.getString("full_name"));
+                    material.setSubjectName(rs.getString("subject_name"));
+                    material.setAverageRating(rs.getDouble("average_rating"));
+                    materials.add(material);
+                }
+            }
+        }
+        return materials;
+    }
 }

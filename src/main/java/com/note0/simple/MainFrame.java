@@ -5,9 +5,11 @@ import java.awt.*;
 
 /**
  * The main window of the application.
- * This class holds and manages the different panels (Login, Register, Dashboard)
+ * This class holds and manages the different panels (Login, Register, Feed, Dashboard)
  * using a CardLayout, allowing for seamless navigation between different views
  * without opening or closing new windows.
+ * 
+ * New Navigation Flow: Login -> Feed (Home) -> Dashboard (Browse)
  */
 public class MainFrame extends JFrame {
 
@@ -69,8 +71,24 @@ public class MainFrame extends JFrame {
 
     /**
      * Called after a user successfully logs in.
-     * It creates a new DashboardPanel, adds it to the CardLayout, and switches to it.
+     * It creates a new FeedPanel (home page), adds it to the CardLayout, and switches to it.
      * @param user The user who has just logged in.
+     */
+    public void showFeedPanel(User user) {
+        // Create the feed panel (home page), passing all necessary DAOs and the logged-in user
+        FeedPanel feedPanel = new FeedPanel(this, user, materialDAO, subjectDAO, cloudinaryService);
+        
+        // Add the feed panel to our card deck
+        mainPanel.add(feedPanel, "FEED_PANEL");
+
+        // Switch the view to the newly created feed (home page)
+        cardLayout.show(mainPanel, "FEED_PANEL");
+    }
+
+    /**
+     * Called when user wants to browse all materials.
+     * It creates a new DashboardPanel, adds it to the CardLayout, and switches to it.
+     * @param user The user who wants to browse.
      */
     public void showDashboardPanel(User user) {
         // Create the dashboard panel, passing all necessary DAOs and the logged-in user
