@@ -23,6 +23,7 @@ public class DashboardPanel extends JPanel {
 
     private JTable materialsTable;
     private DefaultTableModel tableModel;
+    private List<Material> currentMaterials = new ArrayList<>();
 
     public DashboardPanel(MainFrame mainFrame, User user, MaterialDAO materialDAO, SubjectDAO subjectDAO, CloudinaryService cloudinaryService) {
         this.mainFrame = mainFrame;
@@ -36,6 +37,7 @@ public class DashboardPanel extends JPanel {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Browse Materials", createBrowsePanel());
         tabbedPane.addTab("Upload Material", createUploadPanel());
+        tabbedPane.addTab("My Uploads", createMyUploadsPanel());
 
         add(tabbedPane, BorderLayout.CENTER);
         
@@ -94,8 +96,20 @@ public class DashboardPanel extends JPanel {
 
         filterButton.addActionListener(e -> loadMaterials(searchField.getText(), (String) subjectFilterComboBox.getSelectedItem()));
 
+        // Action buttons panel
+        JPanel actionPanel = new JPanel(new FlowLayout());
+        JButton rateButton = new JButton("Rate Selected");
+        JButton viewButton = new JButton("View Selected");
+        
+        rateButton.addActionListener(e -> rateSelectedMaterial());
+        viewButton.addActionListener(e -> viewSelectedMaterial());
+        
+        actionPanel.add(rateButton);
+        actionPanel.add(viewButton);
+
         panel.add(filterPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(materialsTable), BorderLayout.CENTER);
+        panel.add(actionPanel, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -164,15 +178,12 @@ public class DashboardPanel extends JPanel {
 
     private void loadMaterials(String titleFilter, String subjectFilter) {
         tableModel.setRowCount(0); // Clear existing data
+        currentMaterials.clear(); // Clear current materials list
         try {
             List<Material> materials = materialDAO.getMaterials(titleFilter, subjectFilter);
+            currentMaterials.addAll(materials); // Store materials for later access
             for (Material material : materials) {
-                // Add a hidden column for the ID
-                Object[] rowData = {material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName(), material.getId()};
-                
-                // We need a way to add the ID without displaying it. A custom table model is one way.
-                // For simplicity here, we'll just have to query it again on click.
-                 tableModel.addRow(new Object[]{material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName()});
+                tableModel.addRow(new Object[]{material.getTitle(), material.getSubjectName(), String.format("%.1f", material.getAverageRating()), material.getUploaderName()});
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Could not load materials: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -216,6 +227,134 @@ public class DashboardPanel extends JPanel {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Upload failed: " + e.getMessage(), "Upload Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void rateSelectedMaterial() {
+        int selectedRow = materialsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a material to rate.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        try {
+            Material material = currentMaterials.get(selectedRow);
+            long materialId = material.getId();
+            
+            // Get current user rating
+            int currentRating = materialDAO.getUserRating(materialId, loggedInUser.getId());
+            
+            // Show rating dialog
+            String[] options = {"1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"};
+            String message = "Rate: " + material.getTitle() + 
+                           "\nCurrent rating: " + (currentRating > 0 ? currentRating + " stars" : "Not rated");
+            
+            int choice = JOptionPane.showOptionDialog(this, message, "Rate Material", 
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            
+            if (choice >= 0) {
+                int rating = choice + 1;
+                materialDAO.addOrUpdateRating(materialId, loggedInUser.getId(), rating);
+                JOptionPane.showMessageDialog(this, "Rating saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Refresh the materials list to show updated rating
+                loadMaterials("", "All Subjects");
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error rating material: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void viewSelectedMaterial() {
+        int selectedRow = materialsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a material to view.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        Material material = currentMaterials.get(selectedRow);
+        openMaterial(material);
+    }
+    
+    private JPanel createMyUploadsPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // My uploads table
+        String[] columnNames = {"Title", "Subject", "Rating", "Status"};
+        DefaultTableModel myUploadsModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        JTable myUploadsTable = new JTable(myUploadsModel);
+        myUploadsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Action buttons for my uploads
+        JPanel myUploadsActionPanel = new JPanel(new FlowLayout());
+        JButton deleteMyUploadButton = new JButton("Delete Selected");
+        JButton refreshMyUploadsButton = new JButton("Refresh");
+        
+        deleteMyUploadButton.addActionListener(e -> deleteMyUpload(myUploadsTable, myUploadsModel));
+        refreshMyUploadsButton.addActionListener(e -> loadMyUploads(myUploadsModel));
+        
+        myUploadsActionPanel.add(deleteMyUploadButton);
+        myUploadsActionPanel.add(refreshMyUploadsButton);
+        
+        panel.add(new JScrollPane(myUploadsTable), BorderLayout.CENTER);
+        panel.add(myUploadsActionPanel, BorderLayout.SOUTH);
+        
+        // Load initial data
+        loadMyUploads(myUploadsModel);
+        
+        return panel;
+    }
+    
+    private void loadMyUploads(DefaultTableModel model) {
+        model.setRowCount(0);
+        try {
+            List<Material> myMaterials = materialDAO.getMaterialsByUser(loggedInUser.getId());
+            for (Material material : myMaterials) {
+                model.addRow(new Object[]{
+                    material.getTitle(), 
+                    material.getSubjectName(), 
+                    String.format("%.1f", material.getAverageRating()),
+                    material.getApprovalStatus()
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Could not load your uploads: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void deleteMyUpload(JTable table, DefaultTableModel model) {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select an upload to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        try {
+            List<Material> myMaterials = materialDAO.getMaterialsByUser(loggedInUser.getId());
+            if (selectedRow < myMaterials.size()) {
+                Material material = myMaterials.get(selectedRow);
+                
+                int confirm = JOptionPane.showConfirmDialog(this, 
+                    "Are you sure you want to delete '" + material.getTitle() + "'?\n\n" +
+                    "This will remove the material from the database.\n" +
+                    "The uploaded file will remain in Cloudinary storage.", 
+                    "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    materialDAO.deleteMaterial(material.getId());
+                    JOptionPane.showMessageDialog(this, "Upload deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadMyUploads(model); // Refresh the list
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting upload: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

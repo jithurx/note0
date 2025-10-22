@@ -15,11 +15,12 @@ public class CloudinaryService {
         // Prefer standard CLOUDINARY_URL env var: cloudinary://<key>:<secret>@<cloud_name>
         String cloudinaryUrl = System.getenv("CLOUDINARY_URL");
         if (cloudinaryUrl == null || cloudinaryUrl.isBlank()) {
-            // Use default configuration for development/testing
+            // Replace these with your actual Cloudinary credentials
+            // Get these from https://cloudinary.com/console
             this.cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", "demo",
-                "api_key", "demo",
-                "api_secret", "demo"
+                "cloud_name", "your_cloud_name_here",
+                "api_key", "your_api_key_here", 
+                "api_secret", "your_api_secret_here"
             ));
         } else {
             this.cloudinary = new Cloudinary(cloudinaryUrl);
@@ -27,30 +28,40 @@ public class CloudinaryService {
     }
 
     public String uploadFile(File file, String folder, String publicIdHint) throws IOException {
-        String safeFolder = (folder == null || folder.isBlank()) ? "note0" : folder;
-        String name = file.getName().toLowerCase();
-        String resourceType;
-        if (name.endsWith(".pdf")) {
-            // PDFs should be uploaded as raw and explicitly set to public upload type
-            resourceType = "raw";
-        } else if (name.endsWith(".doc") || name.endsWith(".docx") || name.endsWith(".ppt") || name.endsWith(".pptx") || name.endsWith(".xls") || name.endsWith(".xlsx")) {
-            resourceType = "raw";
-        } else {
-            resourceType = "auto";
+        try {
+            String safeFolder = (folder == null || folder.isBlank()) ? "note0" : folder;
+            String name = file.getName().toLowerCase();
+            String resourceType;
+            if (name.endsWith(".pdf")) {
+                // PDFs should be uploaded as raw and explicitly set to public upload type
+                resourceType = "raw";
+            } else if (name.endsWith(".doc") || name.endsWith(".docx") || name.endsWith(".ppt") || name.endsWith(".pptx") || name.endsWith(".xls") || name.endsWith(".xlsx")) {
+                resourceType = "raw";
+            } else {
+                resourceType = "auto";
+            }
+            Map uploadParams = ObjectUtils.asMap(
+                    "folder", safeFolder,
+                    "resource_type", resourceType,
+                    "type", "upload",                // ensure public delivery
+                    "access_mode", "public",         // avoid authenticated/private assets
+                    "public_id", publicIdHint
+            );
+            Map result = cloudinary.uploader().upload(file, uploadParams);
+            Object secureUrl = result.get("secure_url");
+            if (secureUrl == null) {
+                throw new IOException("Cloudinary did not return a secure_url");
+            }
+            return secureUrl.toString();
+        } catch (Exception e) {
+            if (e.getMessage().contains("Invalid API key") || e.getMessage().contains("demo")) {
+                throw new IOException("Cloudinary API credentials are invalid. Please set up your Cloudinary account:\n" +
+                    "1. Go to https://cloudinary.com and create a free account\n" +
+                    "2. Get your credentials from the dashboard\n" +
+                    "3. Set CLOUDINARY_URL environment variable or update CloudinaryService.java");
+            }
+            throw new IOException("Cloudinary upload failed: " + e.getMessage());
         }
-        Map uploadParams = ObjectUtils.asMap(
-                "folder", safeFolder,
-                "resource_type", resourceType,
-                "type", "upload",                // ensure public delivery
-                "access_mode", "public",         // avoid authenticated/private assets
-                "public_id", publicIdHint
-        );
-        Map result = cloudinary.uploader().upload(file, uploadParams);
-        Object secureUrl = result.get("secure_url");
-        if (secureUrl == null) {
-            throw new IOException("Cloudinary did not return a secure_url");
-        }
-        return secureUrl.toString();
     }
     
     /**

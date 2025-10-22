@@ -81,11 +81,18 @@ public class FeedPanel extends JPanel {
         infoPanel.add(new JLabel("Subject: " + material.getSubjectName())); // Simplified
         infoPanel.add(new JLabel("Rating: " + String.format("%.1f", material.getAverageRating())));
 
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton viewButton = new JButton("View");
+        JButton rateButton = new JButton("Rate");
+        
         viewButton.addActionListener(e -> handleMaterialClick(material));
+        rateButton.addActionListener(e -> rateMaterial(material));
+
+        buttonPanel.add(viewButton);
+        buttonPanel.add(rateButton);
 
         panel.add(infoPanel, BorderLayout.CENTER);
-        panel.add(viewButton, BorderLayout.EAST);
+        panel.add(buttonPanel, BorderLayout.EAST);
         return panel;
     }
 
@@ -110,6 +117,35 @@ public class FeedPanel extends JPanel {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void rateMaterial(Material material) {
+        try {
+            long materialId = material.getId();
+            
+            // Get current user rating
+            int currentRating = materialDAO.getUserRating(materialId, loggedInUser.getId());
+            
+            // Show rating dialog
+            String[] options = {"1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"};
+            String message = "Rate: " + material.getTitle() + 
+                           "\nCurrent rating: " + (currentRating > 0 ? currentRating + " stars" : "Not rated");
+            
+            int choice = JOptionPane.showOptionDialog(this, message, "Rate Material", 
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            
+            if (choice >= 0) {
+                int rating = choice + 1;
+                materialDAO.addOrUpdateRating(materialId, loggedInUser.getId(), rating);
+                JOptionPane.showMessageDialog(this, "Rating saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Refresh the feed to show updated ratings
+                mainFrame.showFeedPanel(loggedInUser);
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error rating material: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
