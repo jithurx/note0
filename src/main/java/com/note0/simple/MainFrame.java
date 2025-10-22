@@ -67,7 +67,7 @@ public class MainFrame extends JFrame {
         tabbedPane.addTab("Profile", profilePanel);
 
         if ("ADMIN".equals(user.getRole())) {
-            AdminPanel adminPanel = new AdminPanel(subjectDAO, materialDAO);
+            AdminPanel adminPanel = new AdminPanel(subjectDAO, materialDAO, cloudinaryService);
             tabbedPane.addTab("Admin", adminPanel);
         }
 

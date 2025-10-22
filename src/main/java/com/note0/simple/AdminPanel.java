@@ -10,15 +10,17 @@ public class AdminPanel extends JPanel {
 
     private final SubjectDAO subjectDAO;
     private final MaterialDAO materialDAO;
+    private final CloudinaryService cloudinaryService;
 
     private JTable subjectTable;
     private DefaultTableModel subjectTableModel;
     private JTable materialTable;
     private DefaultTableModel materialTableModel;
 
-    public AdminPanel(SubjectDAO subjectDAO, MaterialDAO materialDAO) {
+    public AdminPanel(SubjectDAO subjectDAO, MaterialDAO materialDAO, CloudinaryService cloudinaryService) {
         this.subjectDAO = subjectDAO;
         this.materialDAO = materialDAO;
+        this.cloudinaryService = cloudinaryService;
 
         setLayout(new GridLayout(2, 1, 10, 10)); // Two main sections: Subjects and Materials
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -31,14 +33,24 @@ public class AdminPanel extends JPanel {
         subjectTable = new JTable(subjectTableModel);
         subjectsPanel.add(new JScrollPane(subjectTable), BorderLayout.CENTER);
         
+        // Subject management buttons
+        JPanel subjectButtonPanel = new JPanel(new FlowLayout());
+        JButton addSubjectButton = new JButton("Add New Subject");
         JButton deleteSubjectButton = new JButton("Delete Selected Subject");
-        subjectsPanel.add(deleteSubjectButton, BorderLayout.SOUTH);
+        JButton refreshSubjectsButton = new JButton("Refresh");
+        
+        subjectButtonPanel.add(addSubjectButton);
+        subjectButtonPanel.add(deleteSubjectButton);
+        subjectButtonPanel.add(refreshSubjectsButton);
+        subjectsPanel.add(subjectButtonPanel, BorderLayout.SOUTH);
 
+        addSubjectButton.addActionListener(e -> addSubject());
         deleteSubjectButton.addActionListener(e -> deleteSubject());
+        refreshSubjectsButton.addActionListener(e -> loadSubjects());
 
         // --- Materials Panel ---
         JPanel materialsPanel = new JPanel(new BorderLayout(10, 10));
-        materialsPanel.setBorder(BorderFactory.createTitledBorder("Review Pending Materials"));
+        materialsPanel.setBorder(BorderFactory.createTitledBorder("Manage Materials (Pending & All Uploaded Notes)"));
 
         materialTableModel = new DefaultTableModel(new String[]{"ID", "Title", "Uploader", "Subject", "Status"}, 0);
         materialTable = new JTable(materialTableModel);
@@ -48,17 +60,23 @@ public class AdminPanel extends JPanel {
         JButton approveButton = new JButton("Approve Selected");
         JButton rejectButton = new JButton("Reject Selected");
         JButton deleteMaterialButton = new JButton("Delete Selected");
+        JButton showPendingButton = new JButton("Show Pending");
+        JButton showAllButton = new JButton("Show All");
         JButton refreshButton = new JButton("Refresh");
         
         materialButtonPanel.add(approveButton);
         materialButtonPanel.add(rejectButton);
         materialButtonPanel.add(deleteMaterialButton);
+        materialButtonPanel.add(showPendingButton);
+        materialButtonPanel.add(showAllButton);
         materialButtonPanel.add(refreshButton);
         materialsPanel.add(materialButtonPanel, BorderLayout.SOUTH);
 
         approveButton.addActionListener(e -> approveMaterial());
         rejectButton.addActionListener(e -> rejectMaterial());
         deleteMaterialButton.addActionListener(e -> deleteMaterial());
+        showPendingButton.addActionListener(e -> loadPendingMaterials());
+        showAllButton.addActionListener(e -> loadAllMaterials());
         refreshButton.addActionListener(e -> loadPendingMaterials());
         
         // Add both main panels to the AdminPanel
@@ -92,6 +110,87 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Error loading pending materials: " + e.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    private void loadAllMaterials() {
+        materialTableModel.setRowCount(0);
+        try {
+            List<Material> materials = materialDAO.getAllMaterialsForAdmin();
+            for (Material material : materials) {
+                materialTableModel.addRow(new Object[]{material.getId(), material.getTitle(), material.getUploaderName(), material.getSubjectName(), material.getApprovalStatus()});
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading all materials: " + e.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void addSubject() {
+        // Create a dialog for adding a new subject
+        JDialog addSubjectDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add New Subject", true);
+        addSubjectDialog.setLayout(new BorderLayout());
+        addSubjectDialog.setSize(400, 300);
+        addSubjectDialog.setLocationRelativeTo(this);
+
+        // Form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Subject name field
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(new JLabel("Subject Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField nameField = new JTextField(20);
+        formPanel.add(nameField, gbc);
+
+        // Branch field
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Branch:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField branchField = new JTextField(20);
+        formPanel.add(branchField, gbc);
+
+        // Semester field
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Semester:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JSpinner semesterSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 8, 1));
+        formPanel.add(semesterSpinner, gbc);
+
+        addSubjectDialog.add(formPanel, BorderLayout.CENTER);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        addSubjectDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Event handlers
+        saveButton.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String branch = branchField.getText().trim();
+            int semester = (Integer) semesterSpinner.getValue();
+
+            if (name.isEmpty() || branch.isEmpty()) {
+                JOptionPane.showMessageDialog(addSubjectDialog, "Please fill in all fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                subjectDAO.addSubject(name, branch, semester);
+                JOptionPane.showMessageDialog(addSubjectDialog, "Subject added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                addSubjectDialog.dispose();
+                loadSubjects(); // Refresh the subjects list
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(addSubjectDialog, "Error adding subject: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> addSubjectDialog.dispose());
+
+        addSubjectDialog.setVisible(true);
+    }
 
     private void deleteSubject() {
         int selectedRow = subjectTable.getSelectedRow();
@@ -100,7 +199,11 @@ public class AdminPanel extends JPanel {
             return;
         }
         Long id = (Long) subjectTableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this subject?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+        String subjectName = (String) subjectTableModel.getValueAt(selectedRow, 1);
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete the subject '" + subjectName + "'?\n\n" +
+            "This will also delete all materials associated with this subject.", 
+            "Confirm Deletion", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 subjectDAO.deleteSubject(id);
@@ -119,11 +222,20 @@ public class AdminPanel extends JPanel {
             return;
         }
         Long id = (Long) materialTableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this material?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+        String materialTitle = (String) materialTableModel.getValueAt(selectedRow, 1);
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete the material '" + materialTitle + "'?\n\n" +
+            "This will remove the material from the database.\n" +
+            "The uploaded file will remain in Cloudinary storage.", 
+            "Confirm Deletion", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                materialDAO.deleteMaterial(id);
-                JOptionPane.showMessageDialog(this, "Material deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                boolean success = materialDAO.deleteMaterialWithFile(id, cloudinaryService);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Material deleted from database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Error deleting material from database.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
                 loadPendingMaterials(); // Refresh the list
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error deleting material: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

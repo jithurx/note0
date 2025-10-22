@@ -84,6 +84,18 @@ public class MaterialDAO {
             pstmt.executeUpdate();
         }
     }
+    
+    /**
+     * Deletes a material from the database only (keeps the file in Cloudinary).
+     * @param materialId The ID of the material to delete
+     * @param cloudinaryService The CloudinaryService instance (not used, kept for compatibility)
+     * @return true if database deletion was successful
+     */
+    public boolean deleteMaterialWithFile(long materialId, CloudinaryService cloudinaryService) throws SQLException {
+        // Delete from database only - keep the file in Cloudinary
+        deleteMaterial(materialId);
+        return true;
+    }
 
     public Material getMaterialById(long id) throws SQLException {
         String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, m.approval_status, u.full_name, s.name AS subject_name " +
@@ -232,5 +244,38 @@ public class MaterialDAO {
             pstmt.setLong(2, materialId);
             pstmt.executeUpdate();
         }
+    }
+    
+    public List<Material> getAllMaterialsForAdmin() throws SQLException {
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, m.approval_status, u.full_name, s.name AS subject_name " +
+                     "FROM materials m " +
+                     "JOIN users u ON m.uploader_id = u.id " +
+                     "JOIN subjects s ON m.subject_id = s.id " +
+                     "ORDER BY m.id DESC";
+        
+        List<Material> materials = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setId(rs.getLong("id"));
+                    material.setTitle(rs.getString("title"));
+                    material.setFilePath(rs.getString("file_path"));
+                    material.setUploaderName(rs.getString("full_name"));
+                    material.setSubjectName(rs.getString("subject_name"));
+                    material.setAverageRating(rs.getDouble("average_rating"));
+                    try {
+                        material.setApprovalStatus(rs.getString("approval_status"));
+                    } catch (SQLException e) {
+                        // If approval_status column doesn't exist, set to APPROVED
+                        material.setApprovalStatus("APPROVED");
+                    }
+                    materials.add(material);
+                }
+            }
+        }
+        return materials;
     }
 }
