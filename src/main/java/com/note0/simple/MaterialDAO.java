@@ -14,20 +14,20 @@ public class MaterialDAO {
             "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
             "FROM materials m " +
             "JOIN users u ON m.uploader_id = u.id " +
-            "JOIN subjects s ON m.subject_id = s.id"
+            "JOIN subjects s ON m.subject_id = s.id " +
+            "WHERE m.approval_status = 'APPROVED'"
         );
         
         List<Object> params = new ArrayList<>();
-        boolean hasWhere = false;
+        boolean hasWhere = true;
 
         if (titleFilter != null && !titleFilter.isBlank()) {
-            sql.append(" WHERE LOWER(m.title) LIKE ?");
+            sql.append(" AND LOWER(m.title) LIKE ?");
             params.add("%" + titleFilter.toLowerCase() + "%");
-            hasWhere = true;
         }
         
         if (subjectFilter != null && !subjectFilter.isBlank() && !subjectFilter.equals("All Subjects")) {
-            sql.append(hasWhere ? " AND" : " WHERE").append(" s.name = ?");
+            sql.append(" AND s.name = ?");
             params.add(subjectFilter);
         }
 
@@ -86,7 +86,7 @@ public class MaterialDAO {
     }
 
     public Material getMaterialById(long id) throws SQLException {
-        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, u.full_name, s.name AS subject_name " +
+        String sql = "SELECT m.id, m.title, m.file_path, m.average_rating, m.approval_status, u.full_name, s.name AS subject_name " +
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
@@ -104,6 +104,12 @@ public class MaterialDAO {
                     material.setUploaderName(rs.getString("full_name"));
                     material.setSubjectName(rs.getString("subject_name"));
                     material.setAverageRating(rs.getDouble("average_rating"));
+                    try {
+                        material.setApprovalStatus(rs.getString("approval_status"));
+                    } catch (SQLException e) {
+                        // If approval_status column doesn't exist, set to APPROVED
+                        material.setApprovalStatus("APPROVED");
+                    }
                 }
             }
         }
@@ -115,6 +121,7 @@ public class MaterialDAO {
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
+                     "WHERE m.approval_status = 'APPROVED' " +
                      "ORDER BY m.id DESC " +
                      "LIMIT ?";
         
@@ -151,7 +158,7 @@ public class MaterialDAO {
                      "FROM materials m " +
                      "JOIN users u ON m.uploader_id = u.id " +
                      "JOIN subjects s ON m.subject_id = s.id " +
-                     "WHERE m.average_rating > 0 " +
+                     "WHERE m.average_rating > 0 AND m.approval_status = 'APPROVED' " +
                      "ORDER BY m.average_rating DESC, m.id DESC " +
                      "LIMIT ?";
         
