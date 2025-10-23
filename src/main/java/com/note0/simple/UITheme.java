@@ -34,9 +34,16 @@ public class UITheme {
     public static final Font HEADING_FONT = new Font("SansSerif", Font.BOLD, 28);
     public static final Font LABEL_FONT = new Font("SansSerif", Font.BOLD, 14);
     public static final Font BODY_FONT = new Font("SansSerif", Font.PLAIN, 14);
+    
+    // --- NEW FONT STYLES FOR TABLES ---
+    public static final Font TABLE_HEADER_FONT = new Font("SansSerif", Font.BOLD, 16);
+    public static final Font TABLE_BODY_FONT = new Font("SansSerif", Font.PLAIN, 16);
 
     // --- Borders ---
     public static final Border APP_PADDING = BorderFactory.createEmptyBorder(20, 20, 20, 20);
+    
+    // --- NEW METRICS FOR TABLES ---
+    public static final int TABLE_ROW_HEIGHT = 26; // (16pt font + 10px padding)
     
     // A border for secondary buttons (dark card, light text)
     private static final Border SECONDARY_BUTTON_BORDER = new CompoundBorder(

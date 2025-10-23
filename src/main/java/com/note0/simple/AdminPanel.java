@@ -41,6 +41,13 @@ public class AdminPanel extends JPanel {
 
         subjectTableModel = new DefaultTableModel(new String[]{"ID", "Name", "Branch", "Semester"}, 0);
         subjectTable = new JTable(subjectTableModel);
+
+        // --- APPLY TABLE STYLES ---
+        subjectTable.setFont(UITheme.TABLE_BODY_FONT);
+        subjectTable.getTableHeader().setFont(UITheme.TABLE_HEADER_FONT);
+        subjectTable.setRowHeight(UITheme.TABLE_ROW_HEIGHT);
+        // -------------------------
+        
         subjectsPanel.add(new JScrollPane(subjectTable), BorderLayout.CENTER);
         
         // Subject management buttons
@@ -77,6 +84,13 @@ public class AdminPanel extends JPanel {
 
         materialTableModel = new DefaultTableModel(new String[]{"ID", "Title", "Uploader", "Subject", "Status"}, 0);
         materialTable = new JTable(materialTableModel);
+
+        // --- APPLY TABLE STYLES ---
+        materialTable.setFont(UITheme.TABLE_BODY_FONT);
+        materialTable.getTableHeader().setFont(UITheme.TABLE_HEADER_FONT);
+        materialTable.setRowHeight(UITheme.TABLE_ROW_HEIGHT);
+        // -------------------------
+
         materialsPanel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
 
         JPanel materialButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -114,7 +128,6 @@ public class AdminPanel extends JPanel {
     }
 
     private void loadSubjects() {
-// ... (existing code, no changes) ...
         subjectTableModel.setRowCount(0);
         try {
             List<Subject> subjects = subjectDAO.getAllSubjects();
@@ -127,7 +140,6 @@ public class AdminPanel extends JPanel {
     }
 
     private void loadPendingMaterials() {
-// ... (existing code, no changes) ...
         materialTableModel.setRowCount(0);
         try {
             List<Material> materials = materialDAO.getPendingMaterials();
@@ -140,7 +152,6 @@ public class AdminPanel extends JPanel {
     }
     
     private void loadAllMaterials() {
-// ... (existing code, no changes) ...
         materialTableModel.setRowCount(0);
         try {
             List<Material> materials = materialDAO.getAllMaterialsForAdmin();
@@ -215,7 +226,6 @@ public class AdminPanel extends JPanel {
 
         // Event handlers
         saveButton.addActionListener(e -> {
-// ... (existing code, no changes) ...
             String name = nameField.getText().trim();
             String branch = branchField.getText().trim();
             int semester = (Integer) semesterSpinner.getValue();
@@ -241,7 +251,6 @@ public class AdminPanel extends JPanel {
     }
 
     private void deleteSubject() {
-// ... (existing code, no changes) ...
         int selectedRow = subjectTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a subject to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -265,7 +274,6 @@ public class AdminPanel extends JPanel {
     }
 
     private void deleteMaterial() {
-// ... (existing code, no changes) ...
         int selectedRow = materialTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a material to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -294,7 +302,6 @@ public class AdminPanel extends JPanel {
     }
     
     private void approveMaterial() {
-// ... (existing code, no changes) ...
         int selectedRow = materialTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a material to approve.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -315,7 +322,6 @@ public class AdminPanel extends JPanel {
     }
     
     private void rejectMaterial() {
-// ... (existing code, no changes) ...
         int selectedRow = materialTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a material to reject.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -335,3 +341,4 @@ public class AdminPanel extends JPanel {
         }
     }
 }
+

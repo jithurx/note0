@@ -83,6 +83,13 @@ public class DashboardPanel extends JPanel {
             }
         };
         materialsTable = new JTable(tableModel);
+
+        // --- APPLY TABLE STYLES ---
+        materialsTable.setFont(UITheme.TABLE_BODY_FONT);
+        materialsTable.getTableHeader().setFont(UITheme.TABLE_HEADER_FONT);
+        materialsTable.setRowHeight(UITheme.TABLE_ROW_HEIGHT);
+        // -------------------------
+
         materialsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         materialsTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -122,7 +129,6 @@ public class DashboardPanel extends JPanel {
     }
 
     private JPanel createUploadPanel() {
-        // This panel will be centered with a card look
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.setBackground(UITheme.APP_BACKGROUND);
 
@@ -209,7 +215,6 @@ public class DashboardPanel extends JPanel {
     }
 
     private void loadAndCacheSubjects() {
-// ... (existing code, no changes) ...
         try {
             allSubjects = subjectDAO.getAllSubjects();
             subjectNameToIdMap.clear();
@@ -221,14 +226,12 @@ public class DashboardPanel extends JPanel {
     }
     
     private void populateSubjectFilter(JComboBox<String> comboBox) {
-// ... (existing code, no changes) ...
         comboBox.removeAllItems();
         comboBox.addItem("All Subjects");
         allSubjects.stream().map(Subject::getName).distinct().sorted().forEach(comboBox::addItem);
     }
 
     private void loadMaterials(String titleFilter, String subjectFilter) {
-// ... (existing code, no changes) ...
         tableModel.setRowCount(0); // Clear existing data
         currentMaterials.clear(); // Clear current materials list
         try {
@@ -243,7 +246,6 @@ public class DashboardPanel extends JPanel {
     }
     
     private void openMaterial(Material material) {
-// ... (existing code, no changes) ...
         try {
             if (Desktop.isDesktopSupported() && material.getFilePath() != null) {
                  Desktop.getDesktop().browse(new java.net.URI(material.getFilePath()));
@@ -256,7 +258,6 @@ public class DashboardPanel extends JPanel {
     }
 
     private void handleUpload(String title, String subjectName, File file) {
-// ... (existing code, no changes) ...
         try {
             // 1. Upload the file to Cloudinary
             String url = cloudinaryService.uploadFile(file, "note0/materials", null);
@@ -285,7 +286,6 @@ public class DashboardPanel extends JPanel {
     }
     
     private void rateSelectedMaterial() {
-// ... (existing code, no changes) ...
         int selectedRow = materialsTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a material to rate.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -322,7 +322,6 @@ public class DashboardPanel extends JPanel {
     }
     
     private void viewSelectedMaterial() {
-// ... (existing code, no changes) ...
         int selectedRow = materialsTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a material to view.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -347,6 +346,13 @@ public class DashboardPanel extends JPanel {
             }
         };
         JTable myUploadsTable = new JTable(myUploadsModel);
+
+        // --- APPLY TABLE STYLES ---
+        myUploadsTable.setFont(UITheme.TABLE_BODY_FONT);
+        myUploadsTable.getTableHeader().setFont(UITheme.TABLE_HEADER_FONT);
+        myUploadsTable.setRowHeight(UITheme.TABLE_ROW_HEIGHT);
+        // -------------------------
+
         myUploadsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         // Action buttons for my uploads
@@ -373,7 +379,6 @@ public class DashboardPanel extends JPanel {
     }
     
     private void loadMyUploads(DefaultTableModel model) {
-// ... (existing code, no changes) ...
         model.setRowCount(0);
         try {
             List<Material> myMaterials = materialDAO.getMaterialsByUser(loggedInUser.getId());
@@ -391,7 +396,6 @@ public class DashboardPanel extends JPanel {
     }
     
     private void deleteMyUpload(JTable table, DefaultTableModel model) {
-// ... (existing code, no changes) ...
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select an upload to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -420,3 +424,4 @@ public class DashboardPanel extends JPanel {
         }
     }
 }
+

@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   PROJECT REPORT FOR "note0" APPLICATION
-%   Corrected Version - Ready for Overleaf Compilation
+%   Updated Version - Based on Actual Codebase Implementation
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -134,39 +134,6 @@
     
 % \end{titlepage}
 
-%======================================================================
-%   ii. SUMMARY OF CHANGES
-%======================================================================
-\chapter*{Summary of Changes}
-\addcontentsline{toc}{chapter}{Summary of Changes}
-
-This report has been updated to accurately reflect the actual implementation of the note0 application. The following corrections have been made to ensure consistency with the actual codebase:
-
-\section{Database Technology Corrections}
-All references to MySQL have been corrected to PostgreSQL throughout the document to match the actual implementation:
-
-\begin{itemize}
-    \item \textbf{Abstract Section:} Updated "cloud-hosted MySQL database" to "cloud-hosted PostgreSQL database"
-    \item \textbf{Project Objectives:} Updated "cloud-based database" to "cloud-based PostgreSQL database"
-    \item \textbf{Scope and Limitations:} Updated all generic database references to specifically mention PostgreSQL
-    \item \textbf{System Architecture:} Updated "MySQL relational database" to "PostgreSQL relational database hosted on Aiven"
-    \item \textbf{Database Hosting:} Updated to specify Aiven as the PostgreSQL hosting platform
-    \item \textbf{Conclusion:} Updated database references to PostgreSQL
-    \item \textbf{Future Scope:} Updated cloud database references to PostgreSQL
-    \item \textbf{Bibliography:} Updated MySQL documentation reference to PostgreSQL documentation
-\end{itemize}
-
-\section{Technical Accuracy Improvements}
-\begin{itemize}
-    \item Updated cloud platform references to specifically mention Aiven for database hosting
-    \item Corrected all generic "database" references to be more specific about PostgreSQL
-    \item Ensured consistency across all sections of the document
-    \item Updated technology stack descriptions to reflect actual implementation
-\end{itemize}
-
-These changes ensure that the report accurately documents the note0 application's actual implementation using PostgreSQL database hosted on Aiven cloud platform, maintaining technical accuracy and consistency throughout the document.
-
-\newpage
 
 %======================================================================
 %   iii. CERTIFICATION PAGE
@@ -269,7 +236,7 @@ Finally, we would like to thank our family and friends for their unwavering supp
 \chapter*{\fontsize{24}{28}\selectfont Declaration}
 \addcontentsline{toc}{chapter}{Declaration}
 
-We hereby declare that the project report entitled \textbf{“note0: A Collaborative Note-Sharing Platform”}, submitted for partial fulfillment of the requirements for the award of the degree of Bachelor of Technology of the APJ Abdul Kalam Technological University, Kerala is a bonafide work done by us under the supervision of \textbf{Mr. Vijesh K}.
+We hereby declare that the project report entitled \textbf{"note0: A Collaborative Note-Sharing Platform"}, submitted for partial fulfillment of the requirements for the award of the degree of Bachelor of Technology of the APJ Abdul Kalam Technological University, Kerala is a bonafide work done by us under the supervision of \textbf{Mr. Vijesh K}.
 
 \vspace{1cm}
 
@@ -293,7 +260,7 @@ We also declare that we have adhered to the ethics of academic honesty and integ
     \end{flushleft}
 \end{minipage}%
 \begin{minipage}[t]{0.5\textwidth}
-    \begin{flushleft} % Content in the right column
+    \begin{flushleft} % Content in the system column
         \textbf{Name of group members} \\
         \vspace{0.5cm} % Space for signatures
         \textbf{Adharsh K} \\
@@ -307,11 +274,11 @@ We also declare that we have adhered to the ethics of academic honesty and integ
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Access to organized and sufficient study material is a cornerstone of effective education. However, students often face challenges due to the limited availability of physical textbooks and the fragmented nature of digital notes. This project, titled "note0," addresses this issue by developing a centralized and collaborative desktop application for note-sharing.
+Access to organized and sufficient study material is a cornerstone of effective education. However, students often face challenges due to the limited availability of physical textbooks and the fragmented nature of digital notes. This project, titled "note0," addresses this issue by developing a centralized and collaborative desktop application for academic material sharing.
 
-The system is built using a 3-tier architecture. The client-side user interface is developed with the Java Swing framework, providing a responsive and intuitive desktop experience. The server-side business logic is handled by a robust Java backend. All data, including user credentials and note content, is securely stored in a cloud-hosted PostgreSQL database, ensuring data persistence and accessibility. The project is managed using Apache Maven, which standardizes the build process and handles dependency management.
+The system is built using a layered architecture with clear separation of concerns. The client-side user interface is developed with the Java Swing framework using FlatLaf for a modern dark theme, providing a responsive and intuitive desktop experience. The application follows the Data Access Object (DAO) pattern to isolate business logic from data persistence logic. All user and material data is stored in a cloud-hosted PostgreSQL database managed by Aiven, ensuring data persistence and accessibility. Uploaded files are stored on Cloudinary and referenced by secure URLs in the database. The project is managed using Apache Maven, which standardizes the build process and handles dependency management.
 
-Key features of note0 include secure user authentication, comprehensive note management (Create, Read, Update, Delete), collaborative note-sharing capabilities, and a powerful search function. The platform successfully provides a solution to the initial problem by creating a unified hub where students can pool their collective knowledge, ensuring that essential study materials are accessible to everyone in the learning community. This report details the design, architecture, implementation, and testing of the note0 application.
+Key features of note0 include secure user authentication with jBCrypt password hashing, comprehensive material management (Create, Read, Update, Delete), role-based access control distinguishing between regular users and administrators, material rating system, subject management through an admin panel, and file upload/download functionality with cloud storage integration. The platform successfully provides a solution to the initial problem by creating a unified hub where students can pool their collective knowledge, ensuring that essential study materials are accessible to everyone in the learning community. This report details the design, architecture, implementation, and testing of the note0 application.
 
 \newpage
 
@@ -346,34 +313,22 @@ Students face two persistent challenges in their academic environment:
 This environment hinders collaborative learning and creates inefficiencies for students. Our project addresses this need by providing a unified platform to consolidate and distribute essential academic resources.
 
 \section{Project Objectives}
-The primary objective of this project is to design and develop a desktop application that serves as a centralized repository for academic notes. The specific goals are as follows:
+The primary objective of this project is to design and develop a desktop application that serves as a centralized repository for academic materials. The specific goals are as follows:
 \begin{itemize}
-    \item To develop a secure system for user registration and login.
-    \item To provide functionalities for creating, editing, viewing, and deleting notes.
-    \item To implement a feature that allows users to securely share their notes with other registered users.
+    \item To develop a secure system for user registration and login with password hashing.
+    \item To provide functionalities for creating, editing, viewing, and deleting materials.
+    \item To implement a feature that allows users to securely share their materials with other registered users.
     \item To ensure data is stored persistently and accessibly using a cloud-based PostgreSQL database.
-    \item To build a user-friendly and intuitive graphical user interface (GUI).
+    \item To build a user-friendly and intuitive graphical user interface (GUI) using Java Swing.
+    \item To implement role-based access control with admin and user roles.
+    \item To integrate cloud storage for file management using Cloudinary.
 \end{itemize}
 
 \section{Scope and Limitations}
-The scope of this project is to deliver a fully functional desktop application with the core features mentioned above. The application is intended for students within an academic institution. 
 
-Limitations include:
-\begin{itemize}
-    \item The current version is a desktop application and does not have a web or mobile client.
-    \item Real-time collaborative editing (like Google Docs) is not supported in this version.
-    \item The application requires an active internet connection to synchronize with the cloud PostgreSQL database.
-\end{itemize}
-%======================================================================
-%   DETAILED SCOPE AND LIMITATIONS SECTION
-%   Replace the existing section in Chapter 1 with this code.
-%======================================================================
+The scope of the note0 project is to deliver a robust and fully functional desktop application designed to serve as a centralized platform for academic material sharing. The system's primary boundary encompasses the complete lifecycle of material management, which includes providing users with the ability to \textbf{Create, Read, Update, and Delete (CRUD)} materials through an intuitive Java Swing interface. A core feature within the project's scope is the implementation of a secure \textbf{user authentication} system with jBCrypt password hashing, ensuring that all user data and materials are protected. Furthermore, the scope includes a \textbf{collaborative sharing} mechanism, allowing registered users to upload and share materials accessible to all platform users. The technical scope involves a layered architecture with clear separation of concerns, persistent data storage handled by a cloud-hosted \textbf{PostgreSQL database} managed by Aiven, file storage using \textbf{Cloudinary}, and project dependencies managed by \textbf{Maven}.
 
-{Scope and Limitations}
-
-The scope of the note0 project is to deliver a robust and fully functional desktop application designed to serve as a centralized platform for academic note-sharing. The system's primary boundary encompasses the complete lifecycle of note management, which includes providing users with the ability to \textbf{Create, Read, Update, and Delete (CRUD)} notes through an intuitive Java Swing interface. A core feature within the project's scope is the implementation of a secure \textbf{user authentication} system, ensuring that all user data and notes are protected. Furthermore, the scope includes a \textbf{collaborative sharing} mechanism, allowing a registered user to grant access to their notes to other specific users on the platform. The technical scope involves a complete 3-tier architecture, with persistent data storage handled by a cloud-hosted \textbf{PostgreSQL database} and project dependencies managed by \textbf{Maven}.
-
-It is important to acknowledge the limitations of the current version of the application to understand its boundaries clearly. The most significant limitation is that note0 is exclusively a \textbf{desktop application}, meaning it lacks a web-based or mobile client. This restricts access to users who are on a machine with the required Java Runtime Environment and the application installed. While the platform supports note sharing, it does not facilitate \textbf{real-time collaborative editing}; multiple users cannot edit the same note simultaneously. Additionally, the application is designed to be online-first and requires a persistent \textbf{internet connection} to synchronize with the cloud PostgreSQL database, as there is no offline functionality for creating or viewing notes. Finally, advanced features common in commercial products, such as folder-based organization, version history, or support for rich media attachments, are outside the scope of this project version and are identified as potential areas for future development.
+It is important to acknowledge the limitations of the current version of the application to understand its boundaries clearly. The most significant limitation is that note0 is exclusively a \textbf{desktop application}, meaning it lacks a web-based or mobile client. This restricts access to users who are on a machine with the required Java Runtime Environment and the application installed. While the platform supports material sharing, it does not facilitate \textbf{real-time collaborative editing}; multiple users cannot edit the same material simultaneously. Additionally, the application is designed to be online-first and requires a persistent \textbf{internet connection} to synchronize with the cloud database, as there is no offline functionality for creating or viewing materials. Finally, advanced features common in commercial products, such as folder-based organization, version history, or support for rich media attachments, are outside the scope of this project version and are identified as potential areas for future development.
 
 
 %----------------------------------------------------------------------
@@ -381,12 +336,12 @@ It is important to acknowledge the limitations of the current version of the app
 %----------------------------------------------------------------------
 
 \section{System Architecture}
-The note0 application is designed using a 3-tier architecture, which separates the application into logical layers. This separation enhances modularity, scalability, and maintainability. The three tiers are:
+The note0 application is designed using a layered architecture with clear separation of concerns, which enhances modularity, scalability, and maintainability. The architecture consists of the following layers:
 
 \begin{enumerate}
-    \item \textbf{Presentation Tier (Client):} This is the user interface that the user interacts with. It is developed using the Java Swing framework to create a responsive desktop application. Its primary role is to display data to the user and accept user input.
-    \item \textbf{Logic Tier (Backend Server):} This tier contains the core business logic of the application. It is a Java-based server that processes requests from the client, interacts with the database, and enforces application rules. Services like authentication, note management, and sharing logic reside here.
-    \item \textbf{Data Tier (Database):} This tier is responsible for data storage and retrieval. We have used a PostgreSQL relational database hosted on a cloud platform (Aiven). This ensures that the data is persistent, secure, and accessible over the internet.
+    \item \textbf{Presentation Layer:} This is the user interface that the user interacts with. It is developed using the Java Swing framework with FlatLaf for a modern dark theme to create a responsive desktop application. Its primary role is to display data to the user and accept user input. Key components include \texttt{MainFrame}, \texttt{LoginPanel}, \texttt{RegistrationPanel}, \texttt{DashboardPanel}, and \texttt{AdminPanel}.
+    \item \textbf{Business Logic Layer:} This layer contains the core business logic and data access objects (DAOs). It processes requests from the presentation layer, interacts with the database, and enforces application rules. Key components include \texttt{UserDAO}, \texttt{MaterialDAO}, \texttt{SubjectDAO}, and \texttt{CloudinaryService}.
+    \item \textbf{Data Access Layer:} This layer is responsible for data storage and retrieval. It uses a PostgreSQL relational database hosted on the Aiven cloud platform. This ensures that the data is persistent, secure, and accessible over the internet. File storage is handled by Cloudinary for uploaded materials.
 \end{enumerate}
 
 \begin{figure}[h!]
@@ -398,57 +353,45 @@ The note0 application is designed using a 3-tier architecture, which separates t
     \label{fig:architecture}
 \end{figure}
 
-%======================================================================
-%   DETAILED TECHNOLOGY STACK SECTION
-%   Replace the existing list in Chapter 2 with this code.
-%======================================================================
-
-\subsection{Java Swing}
-The entire graphical user interface (GUI) for the note0 desktop application was built using \textbf{Java Swing}. Swing is a mature and powerful GUI widget toolkit for Java that provides a rich set of components for creating interactive and platform-independent desktop applications. It was chosen for this project due to its comprehensive library of components—such as \texttt{JFrame}, \texttt{JPanel}, \texttt{JTable}, and \texttt{JButton}—which allowed for the creation of all the necessary views, from the initial login and registration forms to the complex, data-driven dashboard. Swing's event-driven model was used to handle user interactions, such as button clicks and table selections, to trigger application logic.
+\subsection{Java Swing with FlatLaf}
+The entire graphical user interface (GUI) for the note0 desktop application was built using \textbf{Java Swing} with \textbf{FlatLaf} for a modern dark theme. Swing is a mature and powerful GUI widget toolkit for Java that provides a rich set of components for creating interactive and platform-independent desktop applications. FlatLaf was chosen to provide a modern, professional appearance with a dark theme that enhances user experience. The framework's comprehensive library of components—such as \texttt{JFrame}, \texttt{JPanel}, \texttt{JTable}, and \texttt{JButton}—allowed for the creation of all necessary views, from the initial login and registration forms to the complex, data-driven dashboard. Swing's event-driven model was used to handle user interactions, such as button clicks and table selections, to trigger application logic.
 
 \subsection{PostgreSQL (Cloud Hosted)}
 For the data persistence layer, we selected \textbf{PostgreSQL}, a powerful, open-source object-relational database system renowned for its reliability, feature robustness, and data integrity. All application data—including user credentials, subject information, material metadata, and user ratings—is stored in a PostgreSQL database hosted on the Aiven cloud platform. This choice was deliberate; using a relational database ensures that the relationships between users, materials, and subjects are strictly maintained. The database schema is designed to be normalized to reduce redundancy. All interactions between the Java application and the database are handled via the standard PostgreSQL JDBC driver, which is specified as a dependency in our project's \texttt{pom.xml} file.
 
 \subsection{Apache Maven}
 \textbf{Apache Maven} is the build automation and project management tool used to structure and manage the entire lifecycle of the note0 project. Its primary role in this project is twofold. First, it handles \textbf{dependency management}. All external libraries required by the application, such as the PostgreSQL JDBC driver, the jBCrypt library for password hashing, and the Cloudinary SDK, are declared in the \texttt{pom.xml} file. Maven automatically downloads the correct versions of these libraries and makes them available to the project, which greatly simplifies the setup process. Second, Maven provides a standardized \textbf{build lifecycle}, automating tasks such as compiling the Java source code, managing resources, and executing the application. This ensures that the project is built in a consistent and repeatable manner across different development environments.
+
 \section{Cloud Platform Integration}
 To ensure scalability, reliability, and efficient data management, the note0 application leverages a strategic cloud-based infrastructure. Instead of relying on a single service, our architecture separates the hosting of the database from the management of digital content, using specialized platforms for each task. This approach ensures optimal performance and security for different types of data.
 
-\subsection{Database Hosting}
-The core PostgreSQL database is hosted on a dedicated Database-as-a-Service (DBaaS) platform, specifically Aiven. Storing the database in the cloud rather than on a traditional server offers several significant advantages:
+\subsection{Database Hosting - Aiven}
+The core PostgreSQL database is hosted on \textbf{Aiven}, a managed cloud database service. Storing the database in the cloud rather than on a traditional server offers several significant advantages:
 \begin{itemize}
-    \item \textbf{High Availability and Reliability:} Cloud database services provide built-in redundancy and failover mechanisms, ensuring the database is almost always online and accessible.
+    \item \textbf{High Availability and Reliability:} Aiven provides built-in redundancy and failover mechanisms, ensuring the database is almost always online and accessible.
     \item \textbf{Automated Backups:} The platform automatically handles regular backups of the database, which is critical for disaster recovery and preventing data loss.
     \item \textbf{Scalability:} If the application gains more users, the database resources (CPU, RAM, Storage) can be easily scaled up with minimal downtime.
-    \item \textbf{Managed Security:} The cloud provider manages underlying security, patching, and network configuration, allowing our team to focus on application-level security.
+    \item \textbf{Managed Security:} Aiven manages underlying security, patching, and network configuration, allowing our team to focus on application-level security.
 \end{itemize}
 
 \subsection{Digital Asset Management: Cloudinary}
-For handling application "contents" such as user-uploaded images or attachments to notes, we have integrated **Cloudinary**. Cloudinary is a specialized cloud platform for managing media assets. Using a dedicated service like Cloudinary instead of storing files directly on our server provides powerful benefits:
+For handling application materials such as user-uploaded files and attachments, we have integrated \textbf{Cloudinary}. Cloudinary is a specialized cloud platform for managing media assets. Using a dedicated service like Cloudinary instead of storing files directly on our server provides powerful benefits:
 \begin{itemize}
-    \item \textbf{Optimized Storage and Delivery:} Cloudinary stores assets on a highly efficient infrastructure and delivers them through a Content Delivery Network (CDN), meaning images load much faster for users anywhere in the world.
-    \item \textbf{On-the-Fly Transformations:} It can automatically resize, crop, format, and apply effects to images via simple URL parameters. This removes the need for complex image processing logic in our Java backend.
-    \- \textbf{Reduced Server Load:} By offloading the storage and serving of media files, Cloudinary significantly reduces the bandwidth and processing load on our primary application server, keeping it fast and responsive.
-\end{itemize}
-This dual-platform cloud strategy ensures that our application is robust, performant, and ready to scale as new features and users are added. hosting.
+    \item \textbf{Optimized Storage and Delivery:} Cloudinary stores assets on a highly efficient infrastructure and delivers them through a Content Delivery Network (CDN), meaning files load much faster for users anywhere in the world.
+    \item \textbf{On-the-Fly Transformations:} It can automatically resize, crop, format, and apply effects to images via simple URL parameters. This removes the need for complex file processing logic in our Java backend.
+    \item \textbf{Reduced Server Load:} By offloading the storage and serving of media files, Cloudinary significantly reduces the bandwidth and processing load on our primary application server, keeping it fast and responsive.
 \end{itemize}
 
 \section{Database Schema}
-The database is designed to be simple yet effective, with three primary tables.
-
-% \begin{figure}[h!]
-%     \centering
-%     % You need to create an image file named 'er_diagram.png' and upload it to Overleaf
-%     \includegraphics[width=0.7\textwidth]{images/entity_diagram.jpeg}
-%     \caption{Entity-Relationship Diagram}
-%     \label{fig:entity_diagram}
-% \end{figure}
+The database is designed to be simple yet effective, with four primary tables that support the application's functionality.
 
 The main tables are:
 \begin{itemize}
-    \item \textbf{Users:} Stores user information, including a unique user ID, username, and a hashed password for security.
-    \item \textbf{Notes:} Stores the content of each note, including a unique note ID, title, content, creation/modification timestamps, and the owner's user ID.
-   \item \textbf{ratings:} A mapping table that stores each individual rating. It links a \texttt{user\_id} and a \texttt{material\_id} with a given score, creating a many-to-many relationship between users and materials.
+    \item \textbf{Users:} Stores user information, including a unique user ID, full name, email, hashed password, role (USER/ADMIN), college name, and semester information.
+    \item \textbf{Subjects:} Stores academic subject information, including subject ID and name, managed through the admin panel.
+    \item \textbf{Materials:} Stores information about each uploaded material, including material ID, title, file path (Cloudinary URL), average rating, upload timestamp, and foreign keys linking to the users and subjects tables.
+    \item \textbf{Ratings:} A mapping table that stores each individual rating. It links a \texttt{user\_id} and a \texttt{material\_id} with a given score, creating a many-to-many relationship between users and materials.
+\end{itemize}
 
 
 %----------------------------------------------------------------------
@@ -456,11 +399,6 @@ The main tables are:
 %   CHAPTER: Implementation and Testing
 %   This chapter provides a detailed breakdown of the application's
 %   core modules and the testing strategies employed.
-%======================================================================
-
-%======================================================================
-%   CHAPTER: Implementation and Testing
-%   This version includes placeholders for application screenshots.
 %======================================================================
 
 \chapter{Implementation and Testing}
@@ -475,19 +413,25 @@ The application is logically divided into several modules, each responsible for 
 The User Authentication module is the security foundation of the note0 application, responsible for managing user identity and access control. It consists of two primary user-facing components—Registration and Login—supported by a robust backend Data Access Object.
 
 \subsubsection{User Registration}
-The registration process is handled by the \texttt{RegistrationPanel.java} class. This UI component provides fields for a user's full name, email, and password. Upon submission, the user's details, along with a securely hashed password using \textbf{jBCrypt}, are inserted into the \texttt{users} table in the PostgreSQL database.
+The registration process is handled by the \texttt{RegistrationPanel.java} class. This UI component provides fields for a user's full name, email, password, college name, and semester. Upon submission, the user's details, along with a securely hashed password using \textbf{jBCrypt}, are inserted into the \texttt{users} table in the PostgreSQL database.
 
 \subsubsection{User Login}
-The login process is managed by \texttt{LoginPanel.java}. When a user enters their credentials, the system queries the database for the user and uses \textbf{BCrypt.checkpw()} to securely compare the provided password against the stored hash. If valid, the \texttt{MainFrame} transitions the view to the main dashboard.
+The login process is managed by \texttt{LoginPanel.java}. When a user enters their credentials, the system queries the database for the user and uses \textbf{BCrypt.checkpw()} to securely compare the provided password against the stored hash. If valid, the \texttt{MainFrame} transitions the view to the main dashboard based on the user's role.
 
-\subsection{Note Management and Sharing Module}
+\subsection{Material Management and Sharing Module}
 In this application, sharing is achieved by uploading a material to the central platform, making it accessible to all users. This module is primarily managed by \texttt{DashboardPanel.java} and \texttt{MaterialDAO.java}.
 
 \subsubsection{Material Upload (Sharing)}
 The process of sharing a new material involves the user providing metadata and a file, which is then uploaded to Cloudinary. The secure URL returned by Cloudinary is stored in the \texttt{materials} database table along with the metadata.
 
 \subsubsection{Material Viewing, Rating, and Deletion}
-Once uploaded, materials are managed through the dashboard. Users can view materials, which are dynamically loaded and filtered by the \texttt{MaterialDAO}. They can also rate and delete materials, with all actions handled through database transactions to ensure data integrity.
+Once uploaded, materials are managed through the dashboard. Users can view materials, which are dynamically loaded and filtered by the \texttt{MaterialDAO}. They can also rate materials using a 1-5 star rating system and delete materials (if they are the uploader or an admin), with all actions handled through database transactions to ensure data integrity.
+
+\subsection{Admin Panel Module}
+The admin panel is accessible only to users with the ADMIN role and provides functionality for managing subjects and overseeing the platform.
+
+\subsubsection{Subject Management}
+Administrators can add, edit, and delete subjects through the \texttt{AdminPanel.java} interface. This ensures that the subject dropdown in the material upload form is dynamically populated and managed centrally.
 
 %----------------------------------------------------------------------
 \section{Results and Screenshots}
@@ -498,40 +442,42 @@ The application successfully meets all the functional requirements outlined in t
 The following figures provide a visual overview of the application's main interfaces.
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/login_page.png} % This is a placeholder box.
-    % \includegraphics[width=0.6\textwidth]{images/register.jpeg}
+    \includegraphics[width=0.6\textwidth]{new_images_note/login_page.png}
     \caption{Login and Registration Interface}
-    \label{fig:home_page}
+    \label{fig:login_page}
 \end{figure}
+
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/home_page.png} % This is a placeholder box.
+    \includegraphics[width=0.6\textwidth]{new_images_note/home_page.png}
     \caption{The Home Page of Note0 application}
     \label{fig:home_page}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/browse_page.png} % This is a placeholder box.
+    \includegraphics[width=0.6\textwidth]{new_images_note/browse_page.png}
     \caption{The Browse Page: Main Dashboard for Materials}
     \label{fig:browse_page}
 \end{figure}
+
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/browse_upload.png} % This is a placeholder box.
-    \caption{The Browse Page:To Upload materials}
-    \label{fig:browse_page}
+    \includegraphics[width=0.6\textwidth]{new_images_note/browse_upload.png}
+    \caption{The Browse Page: To Upload Materials}
+    \label{fig:browse_upload}
 \end{figure}
+
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/profile_page.png} % This is a placeholder box.
+    \includegraphics[width=0.6\textwidth]{new_images_note/profile_page.png}
     \caption{The User Profile View (Welcome Area)}
     \label{fig:profile_page}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth]{new_images_note/admin_page.png} % This is a placeholder box.
+    \includegraphics[width=0.6\textwidth]{new_images_note/admin_page.png}
     \caption{The Admin Page for Subject Management}
     \label{fig:admin_page}
 \end{figure}
@@ -540,10 +486,10 @@ The following figures provide a visual overview of the application's main interf
 A multi-layered testing strategy was employed to ensure the quality and correctness of the application. This strategy included unit testing, integration testing, and user acceptance testing.
 
 \subsubsection{Unit Testing}
-Unit tests were designed to verify the functionality of individual methods in isolation, particularly within the Data Access Object (DAO) classes.
+Unit tests were designed to verify the functionality of individual methods in isolation, particularly within the Data Access Object (DAO) classes and utility methods.
 
 \subsubsection{Integration Testing}
-Integration testing focused on verifying the interaction between different layers of the application, from a UI event (like a button click) to the database response.
+Integration testing focused on verifying the interaction between different layers of the application, from a UI event (like a button click) to the database response and cloud service integration.
 
 \subsubsection{User Acceptance Testing (UAT)}
 UAT was performed manually to ensure the application meets the end-user's requirements and is free of major usability issues.
@@ -560,6 +506,8 @@ UAT was performed manually to ensure the application meets the end-user's requir
         \hline
         TC-02 & User enters a valid email but an incorrect password. & An "Invalid email or password" error message is shown. & Pass \\
         \hline
+        TC-03 & Admin user logs in with valid credentials. & Admin user is logged in and admin panel is accessible. & Pass \\
+        \hline
     \end{tabular}
 \end{table}
 
@@ -571,26 +519,34 @@ UAT was performed manually to ensure the application meets the end-user's requir
         \hline
         \textbf{ID} & \textbf{Test Case Description} & \textbf{Expected Result} & \textbf{Status} \\
         \hline
-        TC-03 & User successfully uploads a new PDF file. & The file appears in the dashboard table. & Pass \\
+        TC-04 & User successfully uploads a new PDF file. & The file appears in the dashboard table with Cloudinary URL. & Pass \\
         \hline
-        TC-04 & Admin user logs in and deletes a subject. & The subject is removed and no longer appears in the dashboard filters. & Pass \\
+        TC-05 & Admin user logs in and deletes a subject. & The subject is removed and no longer appears in the dashboard filters. & Pass \\
+        \hline
+        TC-06 & User rates a material with 4 stars. & The rating is saved and average rating is updated. & Pass \\
         \hline
     \end{tabular}
 \end{table}
+
 \chapter{Conclusion and Future Scope}
 %----------------------------------------------------------------------
 
 \section{Conclusion}
-We successfully achieved our primary goal of developing **note0**, a collaborative note-sharing platform that directly addresses the challenges of resource scarcity and fragmented information.
+We successfully achieved our primary goal of developing \textbf{note0}, a collaborative material-sharing platform that directly addresses the challenges of resource scarcity and fragmented information in academic environments.
 
-The project successfully integrated Java, Swing, and a cloud-hosted PostgreSQL database to create a robust and scalable solution. Maven was instrumental in managing our project's dependencies and build cycle, ensuring a smooth and standardized development process.
+The project successfully integrated Java Swing with FlatLaf, PostgreSQL database hosted on Aiven, and Cloudinary for file storage to create a robust and scalable solution. Maven was instrumental in managing our project's dependencies and build cycle, ensuring a smooth and standardized development process. The implementation of role-based access control, secure authentication with jBCrypt, and cloud integration demonstrates the application's enterprise-ready architecture.
 
-In conclusion, **note0** is not just a functional application; it is a proof-of-concept for how technology can bridge gaps in educational resources and foster a more collaborative learning environment.
+Key achievements include:
+\begin{itemize}
+    \item Successful implementation of a layered architecture with clear separation of concerns
+    \item Secure user authentication with password hashing
+    \item Role-based access control distinguishing between users and administrators
+    \item Cloud integration for both database hosting and file storage
+    \item Modern, responsive user interface with dark theme
+    \item Comprehensive material management with rating system
+\end{itemize}
 
-%======================================================================
-%   EXPANDED FUTURE SCOPE SECTION
-%   You can replace the existing section in your final chapter with this.
-%======================================================================
+In conclusion, \textbf{note0} is not just a functional application; it is a proof-of-concept for how technology can bridge gaps in educational resources and foster a more collaborative learning environment.
 
 \section{Future Scope}
 The note0 application currently serves as a robust proof-of-concept and a functional platform for sharing academic materials. The existing architecture provides a solid foundation upon which a wide range of advanced features can be built. The following enhancements are identified as a roadmap for the future development of the project.
@@ -607,7 +563,7 @@ To transform the application from a simple sharing platform into a truly collabo
 \begin{itemize}
     \item \textbf{Real-Time Editing:} By integrating technologies like WebSockets, the platform could be enhanced to support simultaneous editing of a single document by multiple users, similar to the functionality of Google Docs.
     \item \textbf{Commenting and Annotation:} Allowing users to leave comments and annotations on specific parts of a document would greatly improve collaborative feedback and discussion.
-    \item \textbf{Version History:} Implementing a system to track changes and allow users to revert to previous versions of a note would prevent accidental data loss and provide a clear history of contributions.
+    \item \textbf{Version History:} Implementing a system to track changes and allow users to revert to previous versions of a material would prevent accidental data loss and provide a clear history of contributions.
 \end{itemize}
 
 \subsection{Enhanced User Experience and Organization}
@@ -619,10 +575,8 @@ Improving the user's ability to manage and find their content is crucial for lon
 \end{itemize}
 
 \subsection{Offline Functionality}
-To improve accessibility, offline support could be implemented. This would involve creating a local cache or database (e.g., using SQLite) on the user's machine. Users could then view, create, and edit their notes without an active internet connection. All changes would be synchronized with the central cloud PostgreSQL database automatically once the user goes online.
-%======================================================================
-%   ix. APPENDICES
-%======================================================================
+To improve accessibility, offline support could be implemented. This would involve creating a local cache or database (e.g., using SQLite) on the user's machine. Users could then view, create, and edit their materials without an active internet connection. All changes would be synchronized with the central cloud database automatically once the user goes online.
+
 %======================================================================
 %   ix. APPENDICES
 %======================================================================
@@ -651,14 +605,6 @@ public class DatabaseManager {
     }
 }
 \end{verbatim}
-%======================================================================
-%   CODE EXPLANATION SUBSECTION
-%   You can add this inside Chapter 3
-%======================================================================
-
-%======================================================================
-%   APPENDIX B: DETAILED CODE EXPLANATION
-%======================================================================
 
 \chapter{Detailed Code Explanation: DashboardPanel.java}
 \addcontentsline{toc}{chapter}{Appendix B: Detailed Code Explanation}
@@ -770,7 +716,7 @@ The workflow, illustrated in Figure \ref{fig:handle_upload}, is as follows:
 \addcontentsline{toc}{chapter}{References}
 
 \bibitem{java_docs}
-Oracle Corporation, "Java SE 11 Documentation", 2023. [Online]. Available: https://docs.oracle.com/en/java/javase/11/
+Oracle Corporation, "Java SE 17 Documentation", 2023. [Online]. Available: https://docs.oracle.com/en/java/javase/17/
 
 \bibitem{swing_tutorial}
 Kathy Sierra and Bert Bates, "Head First Java", 2nd Edition, O'Reilly Media, 2005.
@@ -780,6 +726,18 @@ Apache Maven Project, "Maven: The Definitive Guide", Sonatype, 2008. [Online]. A
 
 \bibitem{postgresql_docs}
 PostgreSQL Documentation Team, "PostgreSQL 15 Documentation", PostgreSQL Global Development Group, 2024.
+
+\bibitem{flatlaf_docs}
+FormDev Software, "FlatLaf - Flat Look and Feel", 2023. [Online]. Available: https://github.com/JFormDesigner/FlatLaf
+
+\bibitem{cloudinary_docs}
+Cloudinary Ltd., "Cloudinary Documentation", 2024. [Online]. Available: https://cloudinary.com/documentation
+
+\bibitem{aiven_docs}
+Aiven Ltd., "Aiven PostgreSQL Documentation", 2024. [Online]. Available: https://docs.aiven.io/docs/products/postgresql
+
+\bibitem{bcrypt_docs}
+Mindrot, "jBCrypt - A Java implementation of OpenBSD's Blowfish password hashing code", 2024. [Online]. Available: https://github.com/jeremyh/jBCrypt
 
 \end{thebibliography}
 
